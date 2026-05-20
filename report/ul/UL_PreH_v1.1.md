@@ -28,45 +28,55 @@
 | **Pronto Soccorso**                 | Luogo di destinazione finale della fase PreH                                                                                                                                                                                                                                                        |
 
 Fonti:
-- https://www.118er.it/romagna/index
-- https://www.auslromagna.it/luoghi/pronto-soccorso/ticket
+
+- [118er Romagna](https://www.118er.it/romagna/index)
+- [AUSL Romagna Pronto Soccorso ticket](https://www.auslromagna.it/luoghi/pronto-soccorso/ticket)
 
 ## Scenario principale
+
 ### Attivazione
-La **Missione** si attiva nel momento in cui un cittadino chiama il numero di emergenza (112/118) per contattare la **Centrale Operativa**. La Centrale Operativa segue dei protocolli per effettuare un'analisi preventiva sul **Paziente**, determinando il **Codice colore**. Dal Codice colore si determina la tempestività con la quale il Paziente deve essere soccorso
+
+La **Missione** si attiva nel momento in cui un cittadino chiama il numero di emergenza (112/118) per contattare la **Centrale Operativa**. La Centrale Operativa segue dei protocolli per effettuare un'analisi preventiva sul **Paziente**, determinando il **Codice colore**. Dal Codice colore si determina la tempestività con la quale il Paziente deve essere soccorso:
+
 - Bianco -> Non urgenza, Ambulanza
 - Verde -> Urgenza minore, Ambulanza
-- Azzurro -> Urgenza differibile (Al momento da non considerare, guarda https://www.118er.it/romagna/index)
+- Azzurro -> Urgenza differibile (Al momento da non considerare, guarda [118er Romagna](https://www.118er.it/romagna/index))
 - Giallo -> Urgenza indifferibile, Ambulanza (con infermiere a bordo)
 - Rosso -> Emergenza, Ambulanza e automedica oppure Ambulanza e Elisoccorso (quest'ultimo in caso di zona impervia)
+
 Una volta determinato il Codice colore, viene scelto un Equipaggio e i mezzi di soccorso.
+
 ### Valutazione
+
 Il veicolo raggiunge lo Scenario di Soccorso. L'Equipaggio mette in sicurezza l'area ed effettua una **Valutazione Clinica** basata su protocolli standard (che include il calcolo del GCS e di altri **Parametri vitali**). Questa valutazione conferma la gravità e determina quale sarà l'ospedale di destinazione.
 
 ### Tracciamento
+
 Durante l'intero svolgimento della missione, ogni azione significativa (arrivo del mezzo, avvio missione, ecc.) viene registrata come un **Evento**, dotato di un suo timestamp. Tutti gli Eventi, che riguardano direttamente il Paziente e il veicolo di soccorso coinvolto, vengono raccolti e storicizzati in un **Report**, un documento (fisico o digitale) che ha valenza sia medica che legale e mostra un resoconto della fase di tracciamento.
 
 ### Consegna
+
 La Missione termina con la fase di **Handover**. Questo è il momento di intermezzo che segna il passaggio dalla fase extra-ospedaliera a quella intra-ospedaliera, il cui evento scatenante è l'arrivo fisico del veicolo e del Paziente al **Pronto Soccorso**. Il Pronto Soccorso rappresenta il luogo di destinazione finale di tutta la fase pre-ospedaliera (PreH).
 
+Fonti:
 
+- [118er Romagna](https://www.118er.it/romagna/index)
+- [AUSL Romagna Pronto Soccorso ticket](https://www.auslromagna.it/luoghi/pronto-soccorso/ticket)
 
 ## Scenario secondario: Elisoccorso
 
 Se lo scenario è in zone impervie, molto distanti, o la Cinematica del trauma è critica, la Centrale Operativa attiva l'**Elisoccorso**. L'elicottero trasporta un Equipaggio specializzato in terapia intensiva direttamente sul target o presso una piazzola di rendez-vous concordata con l'Ambulanza.
 
-
 ## Scenario secondario: Automedica
 
 Se la Centrale Operativa assegna un codice di massima gravità (Codice Rosso), attiva simultaneamente un'Ambulanza (per il trasporto) e un'**Automedica** (per portare Medico e Infermiere sul posto). Se l'Ambulanza arriva per prima, l'equipaggio base inizia la stabilizzazione in attesa dell'équipe medica avanzata.
 
-
-# Requisiti
-
 ## Requisiti funzionali
+
 - Tracciamento dei mezzi e target (pazienti e equipaggio) coinvolti
 - Favorire il passaggio di informazioni tra equipaggiamento extra-ospedaliero e intra-ospedaliero
-- Affidabilità e tracciabilità: tutti gli eventi registrati devono essere segnati su un report, sia per cause mediche che per cause legali 
-## Requisiti non funzionali
-- Tempestività: minimizzare il tempo di risposta e il tempo di trasporto in ospedale (seguendo la norma del Golden Hour, ovvero intervenire sul paziente entro 60 minuti)
+- Affidabilità e tracciabilità: tutti gli eventi registrati devono essere segnati su un report, sia per cause mediche che per cause legali
 
+## Requisiti non funzionali
+
+- Tempestività: minimizzare il tempo di risposta e il tempo di trasporto in ospedale (seguendo la norma del Golden Hour, ovvero intervenire sul paziente entro 60 minuti)
