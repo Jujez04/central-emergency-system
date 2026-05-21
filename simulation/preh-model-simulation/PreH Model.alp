@@ -4662,7 +4662,7 @@ moveTo(targetPatient);]]></EntryAction>
 double minHospDist = infinity;
 
 for (Hospital h : main.hospitalsCollection) {
-    if (this.targetPatient.gcsScore > main.gcsThreshold && h.assistanceLevel > 1) {
+    if (this.targetPatient.severityCode == SeverityCode.RED && h.assistanceLevel > 1) {
         double d = this.distanceTo(h);
 	    if (d < minHospDist) {
 	        minHospDist = d;
@@ -4795,7 +4795,7 @@ traceln("Start moving");]]></Action>
 					<Properties Source="1776417915431" Target="1778227372070" Trigger="timeout">
 						<Action><![CDATA[this.targetHospital = main.operator.getNearestHospital(this.targetPatient);]]></Action>
 						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[targetPatient.gcsScore <= 8 ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
+							<Code><![CDATA[targetPatient.severityCode == SeverityCode.RED ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
@@ -5066,7 +5066,7 @@ targetPatient = (Patient) msg;]]></Action>
     if(isInUrbanRegion()) {
         this.setSpeed(50, KPH); 
     } else {
-        if(this.inState(MovingToPatient) || (this.targetPatient != null && this.targetPatient.gcsScore <= 8)) {
+        if(this.inState(MovingToPatient) || (this.targetPatient != null && this.targetPatient.severityCode == SeverityCode.RED)) {
             this.setSpeed(110, KPH);
         } else {
             this.setSpeed(80, KPH);
@@ -5517,7 +5517,7 @@ this.targetHospital = bestHospital;
 this.moveTo(targetHospital);
 traceln("Helicopter moving to " + bestHospital);]]></Action>
 						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[targetPatient.gcsScore <= main.gcsThreshold ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
+							<Code><![CDATA[targetPatient.severityCode == SeverityCode.RED ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
@@ -5887,21 +5887,6 @@ traceln("Helicopter moving to " + bestHospital);]]></Action>
 			<CurrentLevel>1776355862018</CurrentLevel>
 			<ConnectionsId>1776355862013</ConnectionsId>
 			<Variables>
-				<Variable Class="PlainVariable">
-					<Id>1776356008257</Id>
-					<Name><![CDATA[gcsScore]]></Name>
-					<X>50</X><Y>110</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[int]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA[uniform_discr(3, 15)]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
 				<Variable Class="PlainVariable">
 					<Id>1776521608647</Id>
 					<Name><![CDATA[timeCalled]]></Name>
@@ -6684,9 +6669,8 @@ MedCar closestCar = null;
 double minDistance = infinity;
 double minDistanceCar = infinity;
 
-
 for (Ambulance a : main.ambulancesCollection) {
-	boolean operative = a.isH24 || (main.dayRoutine.getValue() == 1);
+    boolean operative = a.isH24 || (main.dayRoutine.getValue() == 1);
     if (operative && (a.inState(Ambulance.atRest) || a.inState(Ambulance.Returning))) {
         double d = a.distanceTo(p);
         if (d < minDistance) {
@@ -6695,8 +6679,9 @@ for (Ambulance a : main.ambulancesCollection) {
         }
     }
 }
+
 for (MedCar m : main.medCarsCollection) {
-	if (m.inState(MedCar.atRest) || m.inState(MedCar.Returning)) {
+    if (m.inState(MedCar.atRest) || m.inState(MedCar.Returning)) {
         double d = m.distanceTo(p);
         if (d < minDistanceCar) {
             minDistanceCar = d;
@@ -6706,41 +6691,51 @@ for (MedCar m : main.medCarsCollection) {
 }
 
 MedHelicopter freeHeli = findFirst(main.medHelicopters, h -> h.inState(MedHelicopter.atRest));
+
 if (closestAmbulance == null) {
-    traceln("No ambulance left for the emergency");
+    traceln("No ambulance ready. Waiting for support");
     return; // Patient wait in Signaled state
 }
 
 send("Ambulance Call received, taking action", p);
-if (p.gcsScore <= main.gcsThreshold) {
+
+if (p.severityCode == SeverityCode.RED) {
     if (minDistance > main.distanceThreshold && freeHeli != null) {
-        p.medicalAssisted = true; // Rescuer arrives with the Helicopter
+        p.medicalAssisted = true; 
         p.inHelicopter = true;
         
-        traceln("GCS " + p.gcsScore + ", Dist. " + minDistance/1000 + "km -> Sending Ambulance and Helicopter");
+        traceln("Code: " + p.severityCode + ", Distance: (" + minDistance/1000 + "km) -> Sending Ambulance and MedHelicopter");
         send(p, freeHeli);
         send(p, closestAmbulance);
-    } 
-    else if (closestCar != null) {
-    	p.medicalAssisted = false;
+        
+    } else if (closestCar != null) {
+        p.medicalAssisted = false;
         p.inHelicopter = false;
         
-        traceln("GCS " + p.gcsScore + ", Dist. " + minDistance/1000 + " -> Sending MedCar and Ambulance");
+        traceln("Code: " + p.severityCode + ", Distance: " + minDistance/1000 + "km -> Sending MedCar and Ambulance");
         send(p, closestCar);
         send(p, closestAmbulance);
-    }
-    else {
+        
+    } else {
         p.medicalAssisted = true;
         p.inHelicopter = false;
         
-        traceln("GCS " + p.gcsScore + " -> Sending Ambulance only");
+        traceln("No advanced support vehicle available, sending Ambulance");
         send(p, closestAmbulance);
     }
+    
+} else if (p.severityCode == SeverityCode.YELLOW) {
+    p.medicalAssisted = true;
+    p.inHelicopter = false;
+    
+    traceln("Code: " + p.severityCode + " -> Sending Ambulance and nurse as support");
+    send(p, closestAmbulance);
+    
 } else {
     p.medicalAssisted = true;
     p.inHelicopter = false;
     
-    traceln("GCS " + p.gcsScore + " -> Sending Ambulance only");
+    traceln("Code: " + p.severityCode + ", sending Ambulance ");
     send(p, closestAmbulance);
 }]]></Body>
 				</Function>
