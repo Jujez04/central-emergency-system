@@ -368,7 +368,7 @@ for(MedHelicopter h: medHelicopters) {
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[20]]></Code>
+							<Code><![CDATA[5]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1776354899722</Id>
@@ -1498,7 +1498,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -1547,7 +1547,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2220,7 +2220,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2269,7 +2269,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2318,7 +2318,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2367,7 +2367,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2416,7 +2416,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2465,7 +2465,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2514,7 +2514,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2563,7 +2563,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2612,7 +2612,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2661,7 +2661,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2710,7 +2710,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2807,7 +2807,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -7717,7 +7717,7 @@ this.targetPatient = null;]]></Action>
 			<Id>1776525235757</Id>
 			<Name><![CDATA[TestAmbulances]]></Name>
 			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
-			<MaximumMemory>1024</MaximumMemory>
+			<MaximumMemory>2048</MaximumMemory>
 			<RandomNumberGenerationType>fixedSeed</RandomNumberGenerationType>
 			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
 			<AfterSimulationRunCode><![CDATA[results.add(root.operativeAmbulances, root.totalPreHTimeData.mean());]]></AfterSimulationRunCode>
@@ -7808,7 +7808,7 @@ this.targetPatient = null;]]></Action>
 					<DrawLine>true</DrawLine>
 					<Interpolation>LINEAR</Interpolation>
 					<DatasetExpression>  
-						<Title><![CDATA[Average PreH Time (Ambulances variation)]]></Title>
+						<Title><![CDATA[Average PreH Time]]></Title>
 					<Id>1776525321891</Id>
 					<Expression><![CDATA[results]]></Expression>
 					<Color>-12004916</Color>
@@ -7897,10 +7897,10 @@ this.targetPatient = null;]]></Action>
 					<Code><![CDATA[2]]></Code>
 				</Expression>
 				<From Class="CodeValue">
-					<Code><![CDATA[2]]></Code>
+					<Code><![CDATA[4]]></Code>
 				</From>
 				<To Class="CodeValue">
-					<Code><![CDATA[10]]></Code>
+					<Code><![CDATA[8]]></Code>
 				</To>
 				<Step Class="CodeValue">
 					<Code><![CDATA[1]]></Code>
@@ -7936,6 +7936,15 @@ this.targetPatient = null;]]></Action>
 			<RangeVariationParamValue>	
 				<Id>1778494966541</Id>
 				<Type>FIXED</Type>
+				<From Class="CodeValue">
+					<Code><![CDATA[2]]></Code>
+				</From>
+				<To Class="CodeValue">
+					<Code><![CDATA[7]]></Code>
+				</To>
+				<Step Class="CodeValue">
+					<Code><![CDATA[1]]></Code>
+				</Step>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1778848764043</Id>
@@ -7945,8 +7954,8 @@ this.targetPatient = null;]]></Action>
 				<StopOption><![CDATA[Stop at specified time]]></StopOption>
 				<InitialDate><![CDATA[1776301200000]]></InitialDate>	
 				<InitialTime><![CDATA[0.0]]></InitialTime>	
-				<FinalDate><![CDATA[1776387600000]]></FinalDate>	
-				<FinalTime><![CDATA[86400.0]]></FinalTime>	
+				<FinalDate><![CDATA[1776312000000]]></FinalDate>	
+				<FinalTime><![CDATA[10800.0]]></FinalTime>	
 			</ModelTimeProperties>
 			<PresentationProperties>
 				<EnableZoomAndPanning>true</EnableZoomAndPanning>

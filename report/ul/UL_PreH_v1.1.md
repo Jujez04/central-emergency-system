@@ -17,6 +17,7 @@
 | **Automedica**                      | Veicolo di soccorso in cui a bordo è presente un medico e un infermiere che forniscono supporto all'ambulanza in caso di codice di massima gravità. Equipaggio: Infermiere e Medico oppure Soccorritore e Medico                                                                                    |
 | **Cinematica del trauma**           | Il che cosa ha provocato il Trauma, i.e. incidente stradale, incendio, ...                                                                                                                                                                                                                          |
 | **Segnalazione**                    | Evento di innesco del sistema in cui sono presenti possibili casi di Trauma. Solitamente viene fatto da un ente (i.e. cittadino) che chiama al numero di emergenza(112/118) per contattare la Centrale Operativa                                                                                    |
+| **Ospedale**                        | Luogo fisico in cui deve essere portato il Paziente a fine fase PreH. Inoltre è dotato di un sistema a livelli che permette di identificare quanto è alto il supporto medico (i.e. Riccione permette il primo intervento, mentre Cesena dispone anche del Dipartimento di Emergenza).               |
 | **Valutazione Clinica**             | Valutazione fatta sul posto per determinare parametri vitali e GCS                                                                                                                                                                                                                                  |
 | **Scenario di Soccorso**            | Il luogo fisico in cui "è stato innescato" il Trauma nel Paziente                                                                                                                                                                                                                                   |
 | **Elisoccorso**                     | Veicolo di soccorso aereo dotato di dispositivi per tenere traccia di Parametri Vitali. Equipaggio: Infermiere coordinatore, Infermiere assistente di volo, Medico e Soccorritore pilota.                                                                                                           |
@@ -52,6 +53,7 @@ Il veicolo raggiunge lo Scenario di Soccorso. L'Equipaggio mette in sicurezza l'
 
 ### Tracciamento
 
+ La Centrale Operativa (CEU) monitora attivamente i mezzi in movimento (es. tramite GPS e radio) e comunica in quale **Ospedale** muoversi.
 Durante l'intero svolgimento della missione, ogni azione significativa (arrivo del mezzo, avvio missione, ecc.) viene registrata come un **Evento**, dotato di un suo timestamp. Tutti gli Eventi, che riguardano direttamente il Paziente e il veicolo di soccorso coinvolto, vengono raccolti e storicizzati in un **Report**, un documento (fisico o digitale) che ha valenza sia medica che legale e mostra un resoconto della fase di tracciamento.
 
 ### Consegna
