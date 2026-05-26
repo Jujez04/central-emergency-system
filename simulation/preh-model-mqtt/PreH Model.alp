@@ -11,6 +11,28 @@
 	<EngineVersion>6</EngineVersion>
 	<JavaPackageName><![CDATA[preh_model]]></JavaPackageName>
 	<ModelTimeUnit><![CDATA[Second]]></ModelTimeUnit>
+	<OptionLists>
+		<OptionList>
+			<Id>1779342563426</Id>
+			<Name><![CDATA[SeverityCode]]></Name>
+			<Option>
+				<Id>1779342563431</Id>
+				<Name><![CDATA[WHITE]]></Name>
+			</Option>
+			<Option>
+				<Id>1779342563432</Id>
+				<Name><![CDATA[GREEN]]></Name>
+			</Option>
+			<Option>
+				<Id>1779342563433</Id>
+				<Name><![CDATA[YELLOW]]></Name>
+			</Option>
+			<Option>
+				<Id>1779342563434</Id>
+				<Name><![CDATA[RED]]></Name>
+			</Option>
+		</OptionList>
+	</OptionLists>
 	<Folders>
 	</Folders>
 	<ActiveObjectClasses>
@@ -18,7 +40,9 @@
 		<ActiveObjectClass>
 			<Id>1776332817043</Id>
 			<Name><![CDATA[Main]]></Name>
-			<Import><![CDATA[import com.fasterxml.jackson.databind.ObjectMapper;]]></Import>
+			<Import><![CDATA[import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;]]></Import>
 			<StartupCode><![CDATA[for(Ambulance a : ambulances1) { 
     a.homeBase = stationaryPoint1; 
     a.setLocation(stationaryPoint1.getPosition()); 
@@ -124,53 +148,55 @@ for(MedHelicopter h: medHelicopters) {
 	h.setLocation(stationaryPointHelicopter.getPosition());
 }
 
-try {
-    org.eclipse.paho.client.mqttv3.MqttClient mqttClient = new org.eclipse.paho.client.mqttv3.MqttClient("tcp://localhost:1883", "AnyLogic_Sim");
-    mqttClient.connect();
 
-    mqttClient.setCallback(new org.eclipse.paho.client.mqttv3.MqttCallback() {
-        @Override
+try {
+	mqttClient = new MqttClient("tcp://localhost:1883", "Simulation");
+	mqttClient.connect();
+	traceln("Connected to MQTT broker");
+	mqttClient.setCallback(new MqttCallback() {
+
+		@Override
         public void connectionLost(Throwable cause) {
-            traceln("Lost MQTT broker connection");
+            traceln("Connection lost");
         }
-        
+
+        @Override
+        public void deliveryComplete(IMqttDeliveryToken token) {}
+
         @Override
         public void messageArrived(String topic, org.eclipse.paho.client.mqttv3.MqttMessage message) throws Exception {
             String payload = new String(message.getPayload());
-            traceln("Simulation received: " + payload);
-            try {
-            	com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            	com.fasterxml.jackson.databind.JsonNode json = mapper.readTree(payload);
+            traceln("Signal arrived: " + payload);
             
-            	double lat = json.get("latitude").asDouble();
-            	double lon = json.get("longitude").asDouble();
-            	int gcs = json.get("gcsScore").asInt();
-            	
-            	Patient p = add_patients();
-            	p.setLocation(new Point(lat, lon));
-            	p.gcsScore = gcs;
-            	p.timeCalled = time();
-            	
-            	traceln("Create Patient with GCS of " + p.gcsScore + " and position: " + p.getPosition());
-            	operator.handleSignals(p);
-            } catch(Exception e) {
-		        traceln("Error in JSON mapping: " + e.getMessage());
-		    }
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.JsonNode json = mapper.readTree(payload);
+                
+                double lat = json.get("latitude").asDouble();
+                double lon = json.get("longitude").asDouble();
+                String severity = json.get("severityCode").asText(); 
 
+                Patient p = add_patients();
+                p.setLocation(new Point(lat, lon)); 
+                p.timeCalled = time();
+                
+                if(severity.equalsIgnoreCase("RED")) p.severityCode = SeverityCode.RED;
+                else if(severity.equalsIgnoreCase("YELLOW")) p.severityCode = SeverityCode.YELLOW;
+                else if(severity.equalsIgnoreCase("GREEN")) p.severityCode = SeverityCode.GREEN;
+                else p.severityCode = SeverityCode.WHITE;
+
+                operator.handleSignals(p); 
+                
+            } catch(Exception e) {
+                traceln("Error in parsing JSON message: " + e.getMessage());
+            }
         }
-        
-        @Override
-        public void deliveryComplete(org.eclipse.paho.client.mqttv3.IMqttDeliveryToken token) {
-        }
-    });
-    
-    mqttClient.subscribe("emergency");
-    traceln("Simulation connected to MQTT topic");
-    
+	});
+	mqttClient.subscribe("preh");
+
 } catch(Exception e) {
-    traceln("Error in MQTT connection: " + e.getMessage());
-}
-]]></StartupCode>
+	traceln("MQTT client connection error: " + e.getMessage());
+}]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
 				<Id>1776332817048</Id>
@@ -262,6 +288,18 @@ try {
 			<CurrentLevel>1776332817049</CurrentLevel>
 			<ConnectionsId>1776332817044</ConnectionsId>
 			<Variables>
+				<Variable Class="PlainVariable">
+					<Id>1779799214735</Id>
+					<Name><![CDATA[mqttClient]]></Name>
+					<X>-470</X><Y>250</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[org.eclipse.paho.client.mqttv3.MqttClient]]></Type>        
+					</Properties>
+				</Variable>
 				<Variable Class="Parameter">
 					<Id>1776354702767</Id>
 					<Name><![CDATA[gcsThreshold]]></Name>
@@ -392,7 +430,7 @@ try {
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[20]]></Code>
+							<Code><![CDATA[5]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1776354899722</Id>
@@ -595,30 +633,6 @@ try {
 						</ParameterEditor>
 					</Properties>                 
 				</Variable>
-				<Variable Class="Parameter">
-					<Id>1779117627160</Id>
-					<Name><![CDATA[signalUp]]></Name>
-					<X>-210</X><Y>300</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" ModificatorType="STATIC">
-						<Type><![CDATA[boolean]]></Type>
-						<UnitType><![CDATA[NONE]]></UnitType>
-						<SdArray>false</SdArray>
-						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[true]]></Code>
-						</DefaultValue>
-						<ParameterEditor>
-							<Id>1779117627158</Id>
-							<EditorContolType>CHECK_BOX</EditorContolType>
-							<MinSliderValue><![CDATA[0]]></MinSliderValue>
-							<MaxSliderValue><![CDATA[100]]></MaxSliderValue>
-							<DelimeterType>NO_DELIMETER</DelimeterType>
-						</ParameterEditor>
-					</Properties>                 
-				</Variable>
 				<Variable Class="CollectionVariable">
 					<Id>1778072959258</Id>
 					<Name><![CDATA[stationaryPointsCollection]]></Name>
@@ -711,9 +725,9 @@ try {
 					<X>-380</X><Y>60</Y>
 					<Label><X>15</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>false</PresentationFlag>
+					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
-					<Properties TriggerType="timeout" Mode="userControls">
+					<Properties TriggerType="rate" Mode="occuresOnce">
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -735,9 +749,10 @@ try {
 						</RecurrenceCode>
 						<Condition><![CDATA[false]]></Condition>
 					</Properties>
-					<Action><![CDATA[if(signalUp && !signalOnlyUrbanEvent) {
+					<Action><![CDATA[if(!signalOnlyUrbanEvent) {
 	Point position = OperativeZone.randomPointInside();
 	Patient p = add_patients();
+	p.severityCode = SeverityCode.random(new Random());
 	p.setLocation(position);
 	traceln("New call from position: " + position);
 	operator.handleSignals(p);
@@ -752,7 +767,7 @@ try {
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
-					<Properties TriggerType="timeout" Mode="userControls">
+					<Properties TriggerType="rate" Mode="occuresOnce">
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -774,14 +789,13 @@ try {
 						</RecurrenceCode>
 						<Condition><![CDATA[false]]></Condition>
 					</Properties>
-					<Action><![CDATA[if(signalUp) {
-	GISRegion region = urbanRegionCollection.get(uniform_discr(0, urbanRegionCollection.size() - 1));
-	Point position = region.randomPointInside();
-	Patient p = add_patients();
-	p.setLocation(position);
-	traceln("New call from position: " + position);
-	operator.handleSignals(p);
-}]]></Action>
+					<Action><![CDATA[GISRegion region = urbanRegionCollection.get(uniform_discr(0, urbanRegionCollection.size() - 1));
+Point position = region.randomPointInside();
+Patient p = add_patients();
+p.severityCode = SeverityCode.random(new Random());
+p.setLocation(position);
+traceln("New call from position: " + position);
+operator.handleSignals(p);]]></Action>
 				</Event>
 				<Event>
 					<Id>1779114592608</Id>
@@ -820,6 +834,36 @@ try {
 }]]></Action>
 				</Event>
 			</Events>
+			<Functions>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>VOID</ReturnModificator>
+					<ReturnType><![CDATA[double]]></ReturnType>
+					<Id>1779800080947</Id>
+					<Name><![CDATA[sendMqttMessage]]></Name>
+					<X>-470</X><Y>280</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Parameter>
+						<Name><![CDATA[topic]]></Name>
+						<Type><![CDATA[String]]></Type>
+					</Parameter>
+					<Parameter>
+						<Name><![CDATA[payload]]></Name>
+						<Type><![CDATA[String]]></Type>
+					</Parameter>
+					<Body><![CDATA[try {
+    if (mqttClient != null && mqttClient.isConnected()) {
+        org.eclipse.paho.client.mqttv3.MqttMessage message = new org.eclipse.paho.client.mqttv3.MqttMessage(payload.getBytes());
+        mqttClient.publish(topic, message);
+        traceln("Published on " + topic + ": " + payload);
+    }
+} catch (Exception e) {
+    traceln("Error in sending message: " + e.getMessage());
+}]]></Body>
+				</Function>
+			</Functions>
 			<Schedules>
 				<Schedule>
 					<Id>1778671138762</Id>
@@ -1546,7 +1590,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -1595,7 +1639,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2268,7 +2312,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2317,7 +2361,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2366,7 +2410,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2415,7 +2459,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2464,7 +2508,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2513,7 +2557,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2562,7 +2606,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2611,7 +2655,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2660,7 +2704,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2709,7 +2753,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2758,7 +2802,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -2855,7 +2899,7 @@ try {
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[10]]></Code>
+						<Code><![CDATA[operativeAmbulances]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -3223,8 +3267,8 @@ try {
 					<Height>600</Height>
 					<GISShapes>
 					</GISShapes>
-					<Latitude>44.25185978206328</Latitude>
-					<Longitude>11.787864867670647</Longitude>
+					<Latitude>44.190472421723676</Latitude>
+					<Longitude>11.952592609257369</Longitude>
 					<Scale>800000</Scale>
 					<BorderColor>-4144960</BorderColor>
 					<FillColor>-1</FillColor>
@@ -3403,11 +3447,9 @@ try {
 					<LineStyle>DASHED</LineStyle>
 					<ReadOnly>false</ReadOnly>
 					<Points>
-						<Point><X>43.97020257838065</X><Y>12.75483977266753</Y></Point>
-						<Point><X>43.976525159964055</X><Y>12.713108744798898</Y></Point>
-						<Point><X>43.994238106401106</X><Y>12.685287876522288</Y></Point>
-						<Point><X>44.01181413243159</X><Y>12.655270638357912</Y></Point>
-						<Point><X>44.02583148597805</X><Y>12.638615016406055</Y></Point>
+						<Point><X>43.88352545827859</X><Y>12.509592012809229</Y></Point>
+						<Point><X>43.83791661651403</X><Y>12.685301603835052</Y></Point>
+						<Point><X>43.95819783222303</X><Y>12.748557056604348</Y></Point>
 						<Point><X>44.07443935737171</X><Y>12.576933445692243</Y></Point>
 						<Point><X>44.08863883321524</X><Y>12.539595340630202</Y></Point>
 						<Point><X>44.1522336896999</X><Y>12.464186641148162</Y></Point>
@@ -3425,13 +3467,12 @@ try {
 						<Point><X>44.520071607210596</X><Y>11.643613699516616</Y></Point>
 						<Point><X>44.309925303426695</X><Y>11.595623017467686</Y></Point>
 						<Point><X>44.12018216117478</X><Y>11.762812523636903</Y></Point>
-						<Point><X>43.98857914036696</X><Y>11.684095542012086</Y></Point>
-						<Point><X>43.77334018688112</X><Y>12.055662208074912</Y></Point>
-						<Point><X>43.88285596279598</X><Y>12.398945303938866</Y></Point>
-						<Point><X>43.95049301269878</X><Y>12.367647033037393</Y></Point>
-						<Point><X>43.97752630536619</X><Y>12.513705630577613</Y></Point>
-						<Point><X>43.876840059979735</X><Y>12.530398041725066</Y></Point>
-						<Point><X>43.85126569650178</X><Y>12.684802844839009</Y></Point>
+						<Point><X>43.986965956401164</X><Y>11.660475414176926</Y></Point>
+						<Point><X>43.7653140319112</X><Y>12.02507281555552</Y></Point>
+						<Point><X>43.82270591608475</X><Y>12.369024339988568</Y></Point>
+						<Point><X>43.8911235397846</X><Y>12.44809365595019</Y></Point>
+						<Point><X>43.953138260012935</X><Y>12.404166258193735</Y></Point>
+						<Point><X>43.99613089200611</X><Y>12.514863300540004</Y></Point>
 					</Points>
 				</GISRegion>
 				<GISPoint>
@@ -4712,7 +4753,7 @@ moveTo(targetPatient);]]></EntryAction>
 double minHospDist = infinity;
 
 for (Hospital h : main.hospitalsCollection) {
-    if (this.targetPatient.gcsScore > main.gcsThreshold && h.assistanceLevel > 1) {
+    if (this.targetPatient.severityCode == SeverityCode.RED && h.assistanceLevel > 1) {
         double d = this.distanceTo(h);
 	    if (d < minHospDist) {
 	        minHospDist = d;
@@ -4845,7 +4886,7 @@ traceln("Start moving");]]></Action>
 					<Properties Source="1776417915431" Target="1778227372070" Trigger="timeout">
 						<Action><![CDATA[this.targetHospital = main.operator.getNearestHospital(this.targetPatient);]]></Action>
 						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[targetPatient.gcsScore <= 8 ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
+							<Code><![CDATA[targetPatient.severityCode == SeverityCode.RED ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
@@ -5116,7 +5157,7 @@ targetPatient = (Patient) msg;]]></Action>
     if(isInUrbanRegion()) {
         this.setSpeed(50, KPH); 
     } else {
-        if(this.inState(MovingToPatient) || (this.targetPatient != null && this.targetPatient.gcsScore <= 8)) {
+        if(this.inState(MovingToPatient) || (this.targetPatient != null && this.targetPatient.severityCode == SeverityCode.RED)) {
             this.setSpeed(110, KPH);
         } else {
             this.setSpeed(80, KPH);
@@ -5567,7 +5608,7 @@ this.targetHospital = bestHospital;
 this.moveTo(targetHospital);
 traceln("Helicopter moving to " + bestHospital);]]></Action>
 						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[targetPatient.gcsScore <= main.gcsThreshold ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
+							<Code><![CDATA[targetPatient.severityCode == SeverityCode.RED ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
@@ -5938,21 +5979,6 @@ traceln("Helicopter moving to " + bestHospital);]]></Action>
 			<ConnectionsId>1776355862013</ConnectionsId>
 			<Variables>
 				<Variable Class="PlainVariable">
-					<Id>1776356008257</Id>
-					<Name><![CDATA[gcsScore]]></Name>
-					<X>50</X><Y>110</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[int]]></Type>        
-						<InitialValue Class="CodeValue">
-							<Code><![CDATA[uniform_discr(3, 15)]]></Code>
-						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
 					<Id>1776521608647</Id>
 					<Name><![CDATA[timeCalled]]></Name>
 					<X>50</X><Y>140</Y>
@@ -6015,6 +6041,37 @@ traceln("Helicopter moving to " + bestHospital);]]></Action>
 						<Type><![CDATA[boolean]]></Type>        
 						<InitialValue Class="CodeValue">
 							<Code><![CDATA[false]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1779342309658</Id>
+					<Name><![CDATA[severityCode]]></Name>
+					<X>50</X><Y>260</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[SeverityCode]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[SeverityCode.WHITE]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1779454792263</Id>
+					<Name><![CDATA[gcsScore]]></Name>
+					<ExcludeFromBuild>true</ExcludeFromBuild>
+					<X>50</X><Y>110</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[9]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -6719,9 +6776,8 @@ MedCar closestCar = null;
 double minDistance = infinity;
 double minDistanceCar = infinity;
 
-
 for (Ambulance a : main.ambulancesCollection) {
-	boolean operative = a.isH24 || (main.dayRoutine.getValue() == 1);
+    boolean operative = a.isH24 || (main.dayRoutine.getValue() == 1);
     if (operative && (a.inState(Ambulance.atRest) || a.inState(Ambulance.Returning))) {
         double d = a.distanceTo(p);
         if (d < minDistance) {
@@ -6730,8 +6786,9 @@ for (Ambulance a : main.ambulancesCollection) {
         }
     }
 }
+
 for (MedCar m : main.medCarsCollection) {
-	if (m.inState(MedCar.atRest) || m.inState(MedCar.Returning)) {
+    if (m.inState(MedCar.atRest) || m.inState(MedCar.Returning)) {
         double d = m.distanceTo(p);
         if (d < minDistanceCar) {
             minDistanceCar = d;
@@ -6741,41 +6798,51 @@ for (MedCar m : main.medCarsCollection) {
 }
 
 MedHelicopter freeHeli = findFirst(main.medHelicopters, h -> h.inState(MedHelicopter.atRest));
+
 if (closestAmbulance == null) {
-    traceln("No ambulance left for the emergency");
+    traceln("No ambulance ready. Waiting for support");
     return; // Patient wait in Signaled state
 }
 
 send("Ambulance Call received, taking action", p);
-if (p.gcsScore <= main.gcsThreshold) {
+
+if (p.severityCode == SeverityCode.RED) {
     if (minDistance > main.distanceThreshold && freeHeli != null) {
-        p.medicalAssisted = true; // Rescuer arrives with the Helicopter
+        p.medicalAssisted = true; 
         p.inHelicopter = true;
         
-        traceln("GCS " + p.gcsScore + ", Dist. " + minDistance/1000 + "km -> Sending Ambulance and Helicopter");
+        traceln("Code: " + p.severityCode + ", Distance: (" + minDistance/1000 + "km) -> Sending Ambulance and MedHelicopter");
         send(p, freeHeli);
         send(p, closestAmbulance);
-    } 
-    else if (closestCar != null) {
-    	p.medicalAssisted = false;
+        
+    } else if (closestCar != null) {
+        p.medicalAssisted = false;
         p.inHelicopter = false;
         
-        traceln("GCS " + p.gcsScore + ", Dist. " + minDistance/1000 + " -> Sending MedCar and Ambulance");
+        traceln("Code: " + p.severityCode + ", Distance: " + minDistance/1000 + "km -> Sending MedCar and Ambulance");
         send(p, closestCar);
         send(p, closestAmbulance);
-    }
-    else {
+        
+    } else {
         p.medicalAssisted = true;
         p.inHelicopter = false;
         
-        traceln("GCS " + p.gcsScore + " -> Sending Ambulance only");
+        traceln("No advanced support vehicle available, sending Ambulance");
         send(p, closestAmbulance);
     }
+    
+} else if (p.severityCode == SeverityCode.YELLOW) {
+    p.medicalAssisted = true;
+    p.inHelicopter = false;
+    
+    traceln("Code: " + p.severityCode + " -> Sending Ambulance and nurse as support");
+    send(p, closestAmbulance);
+    
 } else {
     p.medicalAssisted = true;
     p.inHelicopter = false;
     
-    traceln("GCS " + p.gcsScore + " -> Sending Ambulance only");
+    traceln("Code: " + p.severityCode + ", sending Ambulance ");
     send(p, closestAmbulance);
 }]]></Body>
 				</Function>
@@ -7719,9 +7786,6 @@ this.targetPatient = null;]]></Action>
 				<Parameter>
 					<ParameterName><![CDATA[patientReleasedRatio]]></ParameterName>
 				</Parameter>
-				<Parameter>
-					<ParameterName><![CDATA[signalUp]]></ParameterName>
-				</Parameter>
 			</Parameters>
 			<PresentationProperties>
 				<EnableZoomAndPanning>true</EnableZoomAndPanning>
@@ -7745,7 +7809,7 @@ this.targetPatient = null;]]></Action>
 			<Id>1776525235757</Id>
 			<Name><![CDATA[TestAmbulances]]></Name>
 			<CommandLineArguments><![CDATA[]]></CommandLineArguments>
-			<MaximumMemory>1024</MaximumMemory>
+			<MaximumMemory>2048</MaximumMemory>
 			<RandomNumberGenerationType>fixedSeed</RandomNumberGenerationType>
 			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
 			<AfterSimulationRunCode><![CDATA[results.add(root.operativeAmbulances, root.totalPreHTimeData.mean());]]></AfterSimulationRunCode>
@@ -7836,7 +7900,7 @@ this.targetPatient = null;]]></Action>
 					<DrawLine>true</DrawLine>
 					<Interpolation>LINEAR</Interpolation>
 					<DatasetExpression>  
-						<Title><![CDATA[Average PreH Time (Ambulances variation)]]></Title>
+						<Title><![CDATA[Average PreH Time]]></Title>
 					<Id>1776525321891</Id>
 					<Expression><![CDATA[results]]></Expression>
 					<Color>-12004916</Color>
@@ -7898,9 +7962,6 @@ this.targetPatient = null;]]></Action>
 			<FreeformParamValue>	
 				<Id>1778848764043</Id>
 			</FreeformParamValue>
-			<FreeformParamValue>	
-				<Id>1779117627160</Id>
-			</FreeformParamValue>
 			<RangeVariationParamValue>	
 				<Id>1776354702767</Id>
 				<Type>FIXED</Type>
@@ -7928,10 +7989,10 @@ this.targetPatient = null;]]></Action>
 					<Code><![CDATA[2]]></Code>
 				</Expression>
 				<From Class="CodeValue">
-					<Code><![CDATA[2]]></Code>
+					<Code><![CDATA[4]]></Code>
 				</From>
 				<To Class="CodeValue">
-					<Code><![CDATA[10]]></Code>
+					<Code><![CDATA[8]]></Code>
 				</To>
 				<Step Class="CodeValue">
 					<Code><![CDATA[1]]></Code>
@@ -7967,21 +8028,26 @@ this.targetPatient = null;]]></Action>
 			<RangeVariationParamValue>	
 				<Id>1778494966541</Id>
 				<Type>FIXED</Type>
+				<From Class="CodeValue">
+					<Code><![CDATA[2]]></Code>
+				</From>
+				<To Class="CodeValue">
+					<Code><![CDATA[7]]></Code>
+				</To>
+				<Step Class="CodeValue">
+					<Code><![CDATA[1]]></Code>
+				</Step>
 			</RangeVariationParamValue>
 			<RangeVariationParamValue>	
 				<Id>1778848764043</Id>
-				<Type>FIXED</Type>
-			</RangeVariationParamValue>
-			<RangeVariationParamValue>	
-				<Id>1779117627160</Id>
 				<Type>FIXED</Type>
 			</RangeVariationParamValue>
 			<ModelTimeProperties>
 				<StopOption><![CDATA[Stop at specified time]]></StopOption>
 				<InitialDate><![CDATA[1776301200000]]></InitialDate>	
 				<InitialTime><![CDATA[0.0]]></InitialTime>	
-				<FinalDate><![CDATA[1776387600000]]></FinalDate>	
-				<FinalTime><![CDATA[86400.0]]></FinalTime>	
+				<FinalDate><![CDATA[1776312000000]]></FinalDate>	
+				<FinalTime><![CDATA[10800.0]]></FinalTime>	
 			</ModelTimeProperties>
 			<PresentationProperties>
 				<EnableZoomAndPanning>true</EnableZoomAndPanning>
@@ -8045,7 +8111,7 @@ this.targetPatient = null;]]></Action>
 			<Location>FILE_SYSTEM</Location>
 		</Resource>
 		<Resource>
-			<Id>1779116563358</Id>
+			<Id>1779798517072</Id>
 			<Path><![CDATA[org.eclipse.paho.client.mqttv3-1.2.5.jar]]></Path>
 			<ReferencedFromUserCode>false</ReferencedFromUserCode>
 			<Location>FILE_SYSTEM</Location>
