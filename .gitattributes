@@ -1,0 +1,22 @@
+* text=auto
+
+*.alp text
+
+*.conf text
+
+pom.xml text
+
+*.class binary
+*.jar binary
+*.war binary
+
+Dockerfile text
+*.yml text
+*.yaml text
+.dockerignore text
+.gitignore text
+.env text
+
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
