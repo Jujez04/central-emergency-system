@@ -148,6 +148,18 @@ for(MedHelicopter h: medHelicopters) {
 	h.setLocation(stationaryPointHelicopter.getPosition());
 }
 
+int ambId = 1;
+for(Ambulance a: ambulancesCollection) {
+	a.agentId = String.format("AMB-%02d", ambId++);
+}
+int carId = 1;
+for(MedCar m: medCarsCollection) {
+	m.agentId = String.format("CAR-%02d", carId++);
+}
+int helId = 1;
+for(MedHelicopter h: medHelicopters) {
+	h.agentId = String.format("HEL-%02d", helId++);
+}
 
 try {
 	mqttClient = new MqttClient("tcp://localhost:1883", "Simulation");
@@ -157,7 +169,7 @@ try {
 
 		@Override
         public void connectionLost(Throwable cause) {
-            traceln("Connection lost");
+            traceln("Connection lost: " + cause.getMessage());
         }
 
         @Override
@@ -166,36 +178,77 @@ try {
         @Override
         public void messageArrived(String topic, org.eclipse.paho.client.mqttv3.MqttMessage message) throws Exception {
             String payload = new String(message.getPayload());
-            traceln("Signal arrived: " + payload);
+            traceln("Command received on [" + topic + "]: " + payload);
             
             try {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                 com.fasterxml.jackson.databind.JsonNode json = mapper.readTree(payload);
                 
-                double lat = json.get("latitude").asDouble();
-                double lon = json.get("longitude").asDouble();
-                String severity = json.get("severityCode").asText(); 
-
-                Patient p = add_patients();
-                p.setLocation(new Point(lat, lon)); 
-                p.timeCalled = time();
-                
-                if(severity.equalsIgnoreCase("RED")) p.severityCode = SeverityCode.RED;
-                else if(severity.equalsIgnoreCase("YELLOW")) p.severityCode = SeverityCode.YELLOW;
-                else if(severity.equalsIgnoreCase("GREEN")) p.severityCode = SeverityCode.GREEN;
-                else p.severityCode = SeverityCode.WHITE;
-
-                operator.handleSignals(p); 
+                if (topic.equals("preh/command/signal")) {
+                    double lat = json.get("latitude").asDouble();
+                    double lon = json.get("longitude").asDouble();
+                    String severity = json.get("severityCode").asText();
+                    Patient p = add_patients();
+                    p.agentId = "P-" + (int)(time() * 1000);
+                    p.setLocation(new Point(lat, lon));
+                    p.timeCalled = time();
+                    if(severity.equalsIgnoreCase("RED")) {
+                    	p.severityCode = SeverityCode.RED;
+                    } else if (severity.equalsIgnoreCase("YELLOW")) {
+                    	p.severityCode = SeverityCode.YELLOW;
+                    } else if (severity.equalsIgnoreCase("GREEN")) {
+                    	p.severityCode = SeverityCode.GREEN;
+                    } else {
+                    	p.severityCode = SeverityCode.WHITE;
+                    }
+                    sendMqttMessage("preh/registry",
+                        "{\"action\":\"CREATED\",\"type\":\"patient\",\"id\":\"" + p.agentId + "\"}");
+                        
+                    String signaledPayload = "{" +
+			            "\"state\":\"Signaled\"," +
+			            "\"lat\":" + p.getLatitude() + "," +
+			            "\"lon\":" + p.getLongitude() + "," +
+			            "\"severityCode\":\"" + p.severityCode + "\"," +
+			            "\"timeCalled\":" + p.timeCalled +
+			        "}";
+			        sendMqttMessage("preh/patient/" + p.agentId + "/state", signaledPayload);
+                    operator.handleSignals(p);
+                }
                 
             } catch(Exception e) {
                 traceln("Error in parsing JSON message: " + e.getMessage());
             }
         }
 	});
-	mqttClient.subscribe("preh");
-
+	mqttClient.subscribe("preh/command/#");
+	for (Ambulance a : ambulancesCollection) {
+        sendMqttMessage("preh/registry",
+            "{\"action\":\"CREATED\",\"type\":\"ambulance\",\"id\":\"" + a.agentId + "\"}");
+    }
+    for (MedCar m : medCarsCollection) {
+        sendMqttMessage("preh/registry",
+            "{\"action\":\"CREATED\",\"type\":\"medcar\",\"id\":\"" + m.agentId + "\"}");
+    }
+    for (MedHelicopter h : medHelicopters) {
+        sendMqttMessage("preh/registry",
+            "{\"action\":\"CREATED\",\"type\":\"medhelicopter\",\"id\":\"" + h.agentId + "\"}");
+    }
 } catch(Exception e) {
 	traceln("MQTT client connection error: " + e.getMessage());
+}
+for (Ambulance a : ambulancesCollection) {
+    sendMqttMessage("preh/ambulance/" + a.agentId + "/state",
+        "{\"state\":\"atRest\",\"lat\":" + a.getLatitude()
+        + ",\"lon\":" + a.getLongitude() + "}");
+}
+for (MedCar m : medCarsCollection) {
+    sendMqttMessage("preh/medcar/" + m.agentId + "/state",
+        "{\"state\":\"atRest\"}");
+}
+for (MedHelicopter h : medHelicopters) {
+    sendMqttMessage("preh/medhelicopter/" + h.agentId + "/state",
+        "{\"state\":\"atRest\",\"lat\":" + h.getLatitude()
+        + ",\"lon\":" + h.getLongitude() + "}");
 }]]></StartupCode>
 			<Generic>false</Generic>
 			<GenericParameter>
@@ -298,6 +351,21 @@ try {
 					<ShowLabel>true</ShowLabel>
 					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
 						<Type><![CDATA[org.eclipse.paho.client.mqttv3.MqttClient]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1780841179866</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>-380</X><Y>30</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
 					</Properties>
 				</Variable>
 				<Variable Class="Parameter">
@@ -752,9 +820,20 @@ try {
 					<Action><![CDATA[if(!signalOnlyUrbanEvent) {
 	Point position = OperativeZone.randomPointInside();
 	Patient p = add_patients();
+	p.agentId = "P-" + (int)(time() * 1000);
 	p.severityCode = SeverityCode.random(new Random());
 	p.setLocation(position);
 	traceln("New call from position: " + position);
+	sendMqttMessage("preh/registry",
+    "{\"action\":\"CREATED\",\"type\":\"patient\",\"id\":\"" + p.agentId + "\"}");
+    String signaledPayload = "{" +
+        "\"state\":\"Signaled\"," +
+        "\"lat\":" + p.getLatitude() + "," +
+        "\"lon\":" + p.getLongitude() + "," +
+        "\"severityCode\":\"" + p.severityCode + "\"," +
+        "\"timeCalled\":" + p.timeCalled +
+    "}";
+    sendMqttMessage("preh/patient/" + p.agentId + "/state", signaledPayload);
 	operator.handleSignals(p);
 }
 ]]></Action>
@@ -792,9 +871,21 @@ try {
 					<Action><![CDATA[GISRegion region = urbanRegionCollection.get(uniform_discr(0, urbanRegionCollection.size() - 1));
 Point position = region.randomPointInside();
 Patient p = add_patients();
+p.agentId = "P-" + (int)(time() * 1000);
 p.severityCode = SeverityCode.random(new Random());
 p.setLocation(position);
 traceln("New call from position: " + position);
+sendMqttMessage("preh/registry",
+    "{\"action\":\"CREATED\",\"type\":\"patient\",\"id\":\"" + p.agentId + "\"}");
+String signaledPayload = "{" +
+    "\"state\":\"Signaled\"," +
+    "\"lat\":" + p.getLatitude() + "," +
+    "\"lon\":" + p.getLongitude() + "," +
+    "\"severityCode\":\"" + p.severityCode + "\"," +
+    "\"timeCalled\":" + p.timeCalled +
+"}";
+sendMqttMessage("preh/patient/" + p.agentId + "/state", signaledPayload);
+
 operator.handleSignals(p);]]></Action>
 				</Event>
 				<Event>
@@ -3160,7 +3251,7 @@ operator.handleSignals(p);]]></Action>
 					</Parameters>
 					<ReplicationFlag>true</ReplicationFlag>
 					<Replication Class="CodeValue">
-						<Code><![CDATA[100]]></Code>
+						<Code><![CDATA[7]]></Code>
 					</Replication>
 					<CollectionType>ARRAY_LIST_BASED</CollectionType>
 					<InEnvironment>true</InEnvironment>
@@ -4711,6 +4802,21 @@ operator.handleSignals(p);]]></Action>
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1780737105192</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>-120</X><Y>20</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 			</Variables>
 			<StatechartElements>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
@@ -4722,6 +4828,11 @@ operator.handleSignals(p);]]></Action>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"atRest\",\"lat\":" + getLatitude()
+    + ",\"lon\":" + getLongitude() + "}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -4735,6 +4846,14 @@ operator.handleSignals(p);]]></Action>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="130" Height="30">
 						<EntryAction><![CDATA[traceln("In Operative Zone");
+main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"MovingToPatient\""
+    + ",\"lat\":" + getLatitude()
+    + ",\"lon\":" + getLongitude()
+    + ",\"patientId\":\"" + targetPatient.agentId + "\""
+    + ",\"severity\":\"" + targetPatient.severityCode + "\"}"
+);
 this.setSpeed(110, KPH);
 moveTo(targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
@@ -4764,7 +4883,15 @@ for (Hospital h : main.hospitalsCollection) {
     
 }
 
-this.targetHospital = bestHospital;]]></EntryAction>
+this.targetHospital = bestHospital;
+main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"TakingPatient\""
+    + ",\"lat\":" + getLatitude()
+    + ",\"lon\":" + getLongitude()
+    + ",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);
+]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -4777,7 +4904,13 @@ this.targetHospital = bestHospital;]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="140" Height="30">
-						<EntryAction><![CDATA[moveToNearestAgent(main.hospitalsCollection);
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"MovingToHospital\""
+    + ",\"patientId\":\"" + targetPatient.agentId + "\""
+    + ",\"hospitalId\":\"" + (targetHospital != null ? targetHospital.getName() : "nearest") + "\"}"
+);
+moveToNearestAgent(main.hospitalsCollection);
 send("Medical Assistance arrived", targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -4791,7 +4924,12 @@ send("Medical Assistance arrived", targetPatient);]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
-						<EntryAction><![CDATA[targetPatient = null;
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"Returning\",\"lat\":" + getLatitude()
+    + ",\"lon\":" + getLongitude() + "}"
+);
+targetPatient = null;
 targetHospital = null;
 moveTo(homeBase);]]></EntryAction>
 						<FillColor>-10496</FillColor>
@@ -4807,7 +4945,14 @@ moveTo(homeBase);]]></EntryAction>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
 						<EntryAction><![CDATA[this.targetHospital.patientAssisted++;
-send("Patient arrived at hospital", targetPatient);]]></EntryAction>
+send("Patient arrived at hospital", targetPatient);
+main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"Handover\""
+    + ",\"patientId\":\"" + (targetPatient != null ? targetPatient.agentId : "") + "\""
+    + ",\"hospitalId\":\"" + (targetHospital != null ? targetHospital.getName() : "") + "\""
+    + ",\"queueLen\":" + (targetHospital != null ? targetHospital.patientAssisted : 0) + "}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -4820,6 +4965,11 @@ send("Patient arrived at hospital", targetPatient);]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="140" Height="30">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/ambulance/" + agentId + "/state",
+    "{\"state\":\"WaitingForDoctor\""
+    + ",\"patientId\":\"" + (targetPatient != null ? targetPatient.agentId : "") + "\"}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5448,6 +5598,21 @@ return isUrban;]]></Body>
 						<Type><![CDATA[StationaryPoint]]></Type>        
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1780841194387</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>-100</X><Y>160</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 			</Variables>
 			<StatechartElements>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
@@ -5459,6 +5624,12 @@ return isUrban;]]></Body>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medhelicopter/" + agentId + "/state",
+    "{\"state\":\"atRest\",\"lat\":" + getLatitude()
+    + ",\"lon\":" + getLongitude() + "}"
+);
+]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5472,6 +5643,10 @@ return isUrban;]]></Body>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="130" Height="30">
 						<EntryAction><![CDATA[traceln("Start moving with Helicopter");
+main.sendMqttMessage(
+    "preh/medhelicopter/" + agentId + "/state",
+    "{\"state\":\"MovingToPatient\",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);
 moveToStraight(targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -5485,6 +5660,10 @@ moveToStraight(targetPatient);]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="130" Height="30">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medhelicopter/" + agentId + "/state",
+    "{\"state\":\"TakingPatient\",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5497,7 +5676,10 @@ moveToStraight(targetPatient);]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="140" Height="30">
-						<EntryAction><![CDATA[
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medhelicopter/" + agentId + "/state",
+    "{\"state\":\"MovingToHospital\",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);
 send("Medical Assistance arrived", targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -5511,7 +5693,11 @@ send("Medical Assistance arrived", targetPatient);]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
-						<EntryAction><![CDATA[this.targetPatient = null;
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medhelicopter/" + agentId + "/state",
+    "{\"state\":\"Returning\"}"
+);
+this.targetPatient = null;
 this.targetHospital = null;
 this.moveToStraight(homeBase);]]></EntryAction>
 						<FillColor>-10496</FillColor>
@@ -5527,6 +5713,10 @@ this.moveToStraight(homeBase);]]></EntryAction>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
 						<EntryAction><![CDATA[send("Patient arrived at hospital", targetPatient);
+main.sendMqttMessage(
+    "preh/medhelicopter/" + agentId + "/state",
+    "{\"state\":\"Handover\",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);
 this.targetHospital.patientAssisted++;]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -6075,6 +6265,21 @@ traceln("Helicopter moving to " + bestHospital);]]></Action>
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1780841199175</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>50</X><Y>50</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 			</Variables>
 			<StatechartElements>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
@@ -6102,7 +6307,12 @@ timeCalled = time();]]></EntryAction>
 					<Properties Width="130" Height="30">
 						<EntryAction><![CDATA[traceln("Patient moving to hospital");
 person.setVisible(false);
-]]></EntryAction>
+main.sendMqttMessage(
+    "preh/patient/" + agentId + "/state",
+    "{\"state\":\"MovingToHospital\""
+    + ",\"inHelicopter\":" + inHelicopter
+    + ",\"medicalAssisted\":" + medicalAssisted + "}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -6115,7 +6325,13 @@ person.setVisible(false);
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
-						<EntryAction><![CDATA[
+						<EntryAction><![CDATA[responseTime = time() - timeCalled;
+main.sendMqttMessage(
+    "preh/patient/" + agentId + "/state",
+    "{\"state\":\"AtHospital\""
+    + ",\"responseTime\":" + responseTime
+    + ",\"totalPreHTime\":" + responseTime + "}"
+);
 traceln("Patient at hospital");]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -6140,6 +6356,10 @@ traceln("Patient at hospital");]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="120" Height="30">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/patient/" + agentId + "/state",
+    "{\"state\":\"WaitingSupport\",\"severityCode\":\"" + severityCode + "\"}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -6505,6 +6725,21 @@ main.totalPreHTimeData.add(totalTime);]]></Action>
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1780841174005</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>80</X><Y>140</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 				<Variable Class="Parameter">
 					<Id>1778070655455</Id>
 					<Name><![CDATA[assistanceLevel]]></Name>
@@ -6756,6 +6991,23 @@ main.totalPreHTimeData.add(totalTime);]]></Action>
 			</ScaleRuler>
 			<CurrentLevel>1776926640662</CurrentLevel>
 			<ConnectionsId>1776926640657</ConnectionsId>
+			<Variables>
+				<Variable Class="PlainVariable">
+					<Id>1780841166916</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>-120</X><Y>40</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+			</Variables>
 			<Functions>
 				<Function AccessType="default" StaticFunction="false">
 					<ReturnModificator>VOID</ReturnModificator>
@@ -6844,7 +7096,26 @@ if (p.severityCode == SeverityCode.RED) {
     
     traceln("Code: " + p.severityCode + ", sending Ambulance ");
     send(p, closestAmbulance);
-}]]></Body>
+}
+
+String vehicleInfo;
+if (p.inHelicopter && freeHeli != null) {
+    vehicleInfo = "\"ambulanceId\":\"" + closestAmbulance.agentId
+                + "\",\"helicopterId\":\"" + freeHeli.agentId + "\"";
+} else if (!p.inHelicopter && closestCar != null && p.severityCode == SeverityCode.RED) {
+    vehicleInfo = "\"ambulanceId\":\"" + closestAmbulance.agentId
+                + "\",\"medCarId\":\"" + closestCar.agentId + "\"";
+} else {
+    vehicleInfo = "\"ambulanceId\":\"" + closestAmbulance.agentId + "\"";
+}
+
+main.sendMqttMessage("preh/operator/dispatch",
+    "{\"patientId\":\"" + p.agentId + "\""
+    + ",\"severityCode\":\"" + p.severityCode + "\""
+    + ",\"distanceMeters\":" + (int)minDistance
+    + "," + vehicleInfo + "}"
+);
+]]></Body>
 				</Function>
 				<Function AccessType="default" StaticFunction="false">
 					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
@@ -7104,6 +7375,23 @@ return closestHospital;]]></Body>
 			</ScaleRuler>
 			<CurrentLevel>1778060917472</CurrentLevel>
 			<ConnectionsId>1778060917467</ConnectionsId>
+			<Variables>
+				<Variable Class="PlainVariable">
+					<Id>1780841228620</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>100</X><Y>109</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+			</Variables>
 			<AgentLinks>
 				<AgentLink>
 					<Id>1778060917467</Id>
@@ -7322,6 +7610,21 @@ return closestHospital;]]></Body>
 						<Type><![CDATA[Patient]]></Type>        
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1780842854772</Id>
+					<Name><![CDATA[agentId]]></Name>
+					<X>-110</X><Y>20</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[String]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 			</Variables>
 			<StatechartElements>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
@@ -7333,6 +7636,11 @@ return closestHospital;]]></Body>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medcar/" + agentId + "/state",
+    "{\"state\":\"atRest\"}"
+);
+]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -7345,7 +7653,11 @@ return closestHospital;]]></Body>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="130" Height="30">
-						<EntryAction><![CDATA[moveTo(targetPatient);]]></EntryAction>
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medcar/" + agentId + "/state",
+    "{\"state\":\"MovingToPatient\",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);
+moveTo(targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -7358,6 +7670,10 @@ return closestHospital;]]></Body>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="130" Height="40">
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medcar/" + agentId + "/state",
+    "{\"state\":\"TreatingPatient\",\"patientId\":\"" + targetPatient.agentId + "\"}"
+);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -7370,7 +7686,11 @@ return closestHospital;]]></Body>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="130" Height="40">
-						<EntryAction><![CDATA[moveTo(homeBase)]]></EntryAction>
+						<EntryAction><![CDATA[main.sendMqttMessage(
+    "preh/medcar/" + agentId + "/state",
+    "{\"state\":\"Returning\"}"
+);
+moveTo(homeBase)]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
