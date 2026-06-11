@@ -1,17 +1,26 @@
-# Temporary files for Anylogic
+
+# AnyLogic Temporary & Cache Files
 simulation/**/cache/
 simulation/**/debug.log
 ~*.alp
 *.alp.bak
+Exported_*/
+exported_model*/
 
-# cache files
+# VSCode
 */.metadata/
 */.config/
 */.recommenders/
+.vscode/
+.vscode/settings.json
 
+# Java & Maven
 *.class
 *.jar
+*.war
+**/target/
 
+# Database Anylogic
 database/*.lck
 database/*.log
 database/*.data
@@ -19,14 +28,7 @@ database/*.backup
 database/*.properties
 database/*.script
 
-Exported_*/
-exported_model*/
-
-*.log
-
-!org.eclipse.paho.client.mqttv3-1.2.5.jar
-
-# LaTeX build files
+# LaTeX Documentation Files
 *.aux
 *.bbl
 *.blg
@@ -49,11 +51,3 @@ exported_model*/
 *.idx
 *.gz
 report/*/*.pdf
-
-# VSCode setting files
-.vscode
-.vscode/settings.json
-
-
-# Maven
-*/target/*
