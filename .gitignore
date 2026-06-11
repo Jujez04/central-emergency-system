@@ -53,3 +53,7 @@ report/*/*.pdf
 # VSCode setting files
 .vscode
 .vscode/settings.json
+
+
+# Maven
+*/target/*

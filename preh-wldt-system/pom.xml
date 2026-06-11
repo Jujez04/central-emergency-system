@@ -11,9 +11,9 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>25</maven.compiler.source>
-    <maven.compiler.target>25</maven.compiler.target>
-    <wldt.version>0.7.0</wldt.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <wldt.version>0.4.0</wldt.version>
     <jackson.version>2.15.2</jackson.version>
     <paho.version>1.2.5</paho.version>
   </properties>
@@ -23,6 +23,24 @@
         <groupId>io.github.wldt</groupId>
         <artifactId>wldt-core</artifactId>
         <version>${wldt.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>io.github.wldt</groupId>
+        <artifactId>http-digital-adapter</artifactId>
+        <version>0.2</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>io.github.wldt</groupId>
+        <artifactId>mqtt-digital-adapter</artifactId>
+        <version>0.1.2</version>
+    </dependency>
+
+    <dependency>
+        <groupId>io.github.wldt</groupId>
+        <artifactId>mqtt-physical-adapter</artifactId>
+        <version>0.1.2</version>
     </dependency>
 
     <dependency>
