@@ -368,6 +368,21 @@ for (MedHelicopter h : medHelicopters) {
 						</InitialValue>
 					</Properties>
 				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423459050</Id>
+					<Name><![CDATA[isWeatherSafeForFlight]]></Name>
+					<X>-470</X><Y>220</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[boolean]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[true;]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
 				<Variable Class="Parameter">
 					<Id>1776354702767</Id>
 					<Name><![CDATA[gcsThreshold]]></Name>
@@ -381,7 +396,7 @@ for (MedHelicopter h : medHelicopters) {
 						<UnitType><![CDATA[NONE]]></UnitType>
 						<SdArray>false</SdArray>
 						<DefaultValue Class="CodeValue">
-							<Code><![CDATA[6]]></Code>
+							<Code><![CDATA[4]]></Code>
 						</DefaultValue>
 						<ParameterEditor>
 							<Id>1776354702765</Id>
@@ -924,6 +939,45 @@ operator.handleSignals(p);]]></Action>
 	}
 }]]></Action>
 				</Event>
+				<Event>
+					<Id>1781425103062</Id>
+					<Name><![CDATA[weatherChanging]]></Name>
+					<X>-380</X><Y>150</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties TriggerType="rate" Mode="occuresOnce">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_HOUR]]></Unit>
+						</Rate>
+						<Id>1781425103060</Id>
+						<OccurrenceAtTime>true</OccurrenceAtTime>
+						<OccurrenceDate>1781510400000</OccurrenceDate>
+						<OccurrenceTime Class="CodeUnitValue">
+							<Code><![CDATA[0]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</OccurrenceTime>
+						<RecurrenceCode Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</RecurrenceCode>
+						<Condition><![CDATA[false]]></Condition>
+					</Properties>
+					<Action><![CDATA[if(uniform_discr(0, 10) > 7) {
+	isWeatherSafeForFlight = !isWeatherSafeForFlight;
+}
+if(isWeatherSafeForFlight == false) {
+	traceln("Weather is not safe for flight");
+} else {
+	traceln("Weather is safe for flight");
+}]]></Action>
+				</Event>
 			</Events>
 			<Functions>
 				<Function AccessType="default" StaticFunction="false">
@@ -1024,6 +1078,149 @@ operator.handleSignals(p);]]></Action>
 							<Start>590400000</Start>
 							<End>547200000</End>
 							<Value>1</Value>
+						</Interval>
+					</Intervals>
+					<Exceptions>
+					</Exceptions>
+				</Schedule>
+				<Schedule>
+					<Id>1781431912430</Id>
+					<Name><![CDATA[trafficSchedule]]></Name>
+					<X>-470</X><Y>430</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<ValueType>double_</ValueType>
+					<UnitType><![CDATA[NONE]]></UnitType>
+					<DefaultValue>0.0</DefaultValue>
+					<RepresentationMode>intervals</RepresentationMode>
+					<RepresentationType>week</RepresentationType>
+					<FirstDayOfWeek>sunday</FirstDayOfWeek>
+					<TimeUnitsInterval>hours</TimeUnitsInterval>
+					<RepeatTime>86400000</RepeatTime>
+					<RepeatTimeInterval>days</RepeatTimeInterval>
+					<IsSnapTo>false</IsSnapTo>
+					<SnapTo>1781431912305</SnapTo>
+					<SnapToTimeUnits>minutes</SnapToTimeUnits>
+					<AllDayExceptionMode>false</AllDayExceptionMode>
+					<LoadFromDatabase><![CDATA[false]]></LoadFromDatabase>
+					<IntervalsQuery>
+						<Id>1781431912428</Id>
+						<TableReference>
+						</TableReference>
+							<StartColumnReference>
+							</StartColumnReference>
+							<EndColumnReference>
+							</EndColumnReference>
+							<ValueColumnReference>
+							</ValueColumnReference>
+					</IntervalsQuery>
+					<Intervals>
+						<Interval>
+							<Start>27000000</Start>
+							<End>32400000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>113400000</Start>
+							<End>118800000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>199800000</Start>
+							<End>205200000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>286200000</Start>
+							<End>291600000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>372600000</Start>
+							<End>378000000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>459000000</Start>
+							<End>464400000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>545400000</Start>
+							<End>550800000</End>
+							<Value>0.6</Value>
+						</Interval>
+						<Interval>
+							<Start>61200000</Start>
+							<End>68400000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>147600000</Start>
+							<End>154800000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>234000000</Start>
+							<End>241200000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>320400000</Start>
+							<End>327600000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>406800000</Start>
+							<End>414000000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>493200000</Start>
+							<End>500400000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>579600000</Start>
+							<End>586800000</End>
+							<Value>0.55</Value>
+						</Interval>
+						<Interval>
+							<Start>0</Start>
+							<End>61200000</End>
+							<Value>1.15</Value>
+						</Interval>
+						<Interval>
+							<Start>86400000</Start>
+							<End>147600000</End>
+							<Value>1.15</Value>
+						</Interval>
+						<Interval>
+							<Start>172800000</Start>
+							<End>234000000</End>
+							<Value>1.15</Value>
+						</Interval>
+						<Interval>
+							<Start>259200000</Start>
+							<End>320400000</End>
+							<Value>1.15</Value>
+						</Interval>
+						<Interval>
+							<Start>345600000</Start>
+							<End>406800000</End>
+							<Value>1.15</Value>
+						</Interval>
+						<Interval>
+							<Start>432000000</Start>
+							<End>493200000</End>
+							<Value>1.15</Value>
+						</Interval>
+						<Interval>
+							<Start>518400000</Start>
+							<End>579600000</End>
+							<Value>1.15</Value>
 						</Interval>
 					</Intervals>
 					<Exceptions>
@@ -4961,6 +5158,7 @@ main.sendMqttMessage(
     + ",\"severity\":\"" + targetPatient.severityCode + "\"}"
 );
 this.setSpeed(110, KPH);
+tripDistance += distanceTo(targetPatient);
 moveTo(targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -5016,8 +5214,10 @@ main.sendMqttMessage(
     + ",\"patientId\":\"" + targetPatient.agentId + "\""
     + ",\"hospitalId\":\"" + (targetHospital != null ? targetHospital.getName() : "nearest") + "\"}"
 );
-moveToNearestAgent(main.hospitalsCollection);
-send("Start transport", targetPatient);]]></EntryAction>
+tripDistance += distanceTo(targetHospital);
+moveTo(targetHospital);
+send("Start transport", targetPatient);
+]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5037,6 +5237,7 @@ send("Start transport", targetPatient);]]></EntryAction>
 );
 targetPatient = null;
 targetHospital = null;
+tripDistance += distanceTo(homeBase);
 moveTo(homeBase);
 this.fuelLevel -= (tripDistance / 1000.0) * 0.005;
 this.missionsSinceMaintenance++;
@@ -5045,8 +5246,7 @@ if(this.fuelLevel < 0.2) {
 	this.needsRefueling = true;
 } else if (this.missionsSinceMaintenance >= this.maintenanceThreshold) {
 	this.needsMaintenance = true;
-}
-tripDistance += distanceTo(homeBase);]]></EntryAction>
+}]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5073,7 +5273,7 @@ main.sendMqttMessage(
 				</StatechartElement>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
 					<Id>1778227372070</Id>
-					<Name><![CDATA[WaitingForDoctor]]></Name>
+					<Name><![CDATA[Supporting]]></Name>
 					<X>285</X><Y>290</Y>
 					<Label><X>10</X><Y>10</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -5082,7 +5282,7 @@ main.sendMqttMessage(
 					<Properties Width="140" Height="30">
 						<EntryAction><![CDATA[main.sendMqttMessage(
     "preh/ambulance/" + agentId + "/state",
-    "{\"state\":\"WaitingForDoctor\""
+    "{\"state\":\"Supporting\""
     + ",\"patientId\":\"" + (targetPatient != null ? targetPatient.agentId : "") + "\"}"
 );]]></EntryAction>
 						<FillColor>-10496</FillColor>
@@ -5104,7 +5304,7 @@ traceln("Refueling " + agentId);]]></EntryAction>
 				</StatechartElement>
 				<StatechartElement Class="State" ParentState="ROOT_NODE">
 					<Id>1781417410708</Id>
-					<Name><![CDATA[UnderMaintance]]></Name>
+					<Name><![CDATA[UnderMaintenance]]></Name>
 					<X>360</X><Y>140</Y>
 					<Label><X>10</X><Y>10</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -5126,6 +5326,12 @@ this.maintenanceThreshold = uniform_discr(5, 10);]]></ExitAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="140" Height="30">
+						<EntryAction><![CDATA[String payload = "{" +
+    "\"state\":\"Sanitizing\"," +
+    "\"patientId\":\"" + (this.targetPatient != null ? this.targetPatient.agentId : "null") + "\"" +
+    "}";
+    
+main.sendMqttMessage("preh/ambulance/" + agentId + "/state", payload);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5221,7 +5427,6 @@ traceln("Start moving");]]></Action>
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1776417951157" Target="1776518482322" Trigger="arrival">
-						<Action><![CDATA[tripDistance += distanceTo(targetHospital)]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -5286,7 +5491,7 @@ traceln("Start moving");]]></Action>
 					<Properties Source="1776417893684" Target="1776417915431" Trigger="arrival">
 						<Action><![CDATA[traceln("Arrived at patient position");
 send("Start treatment", targetPatient);
-tripDistance += distanceTo(targetPatient);]]></Action>
+]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[WEEK]]></Unit>
@@ -5381,7 +5586,12 @@ targetPatient = (Patient) msg;]]></Action>
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1778227372070" Target="1776417951157" Trigger="condition">
-						<Action><![CDATA[this.targetHospital = main.operator.getNearestHospital(this.targetPatient);]]></Action>
+						<Action><![CDATA[if (this.targetPatient.severityCode == SeverityCode.RED || 
+		this.targetPatient.gcsScore <= main.gcsThreshold) {
+	this.targetHospital = main.hospitalCesena;
+} else {
+	this.targetHospital = getNearestAgent(main.hospitalsCollection);
+}]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -5563,19 +5773,13 @@ targetPatient = (Patient) msg;]]></Action>
 					<ShowLabel>false</ShowLabel>
 					<Points>
 						<Point><X>0</X><Y>0</Y></Point>
-						<Point><X>86.66666666666669</X><Y>20</Y></Point>
+						<Point><X>90</X><Y>20</Y></Point>
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1776518482322" Target="1781420607533" Trigger="timeout">
-						<Action><![CDATA[String payload = "{" +
-    "\"state\":\"SanitizingAndRestocking\"," +
-    "\"patientId\":\"" + (this.targetPatient != null ? this.targetPatient.agentId : "null") + "\"" +
-    "}";
-    
-main.sendMqttMessage("preh/ambulance/" + this.agentId + "/state", payload);]]></Action>
 						<Timeout Class="CodeUnitValue">
-							<Code><![CDATA[1]]></Code>
-							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+							<Code><![CDATA[main.timeHandoverAmbulance + (this.targetHospital.patientAssisted * 10)]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
 						</Timeout>
 						<Condition><![CDATA[true]]></Condition>
 						<Rate Class="CodeUnitValue">
@@ -5594,7 +5798,7 @@ main.sendMqttMessage("preh/ambulance/" + this.agentId + "/state", payload);]]></
 				<Event>
 					<Id>1778497236467</Id>
 					<Name><![CDATA[speedControl]]></Name>
-					<X>-180</X><Y>490</Y>
+					<X>-170</X><Y>440</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5621,15 +5825,15 @@ main.sendMqttMessage("preh/ambulance/" + this.agentId + "/state", payload);]]></
 						</RecurrenceCode>
 						<Condition><![CDATA[false]]></Condition>
 					</Properties>
-					<Action><![CDATA[if (this.inState(MovingToPatient) || this.inState(MovingToHospital)) {
+					<Action><![CDATA[if (this.inState(MovingToPatient) || this.inState(MovingToHospital) || this.inState(Returning)) {
     
     if(isInUrbanRegion()) {
-        this.setSpeed(50, KPH); 
+        this.setSpeed(50 * main.trafficSchedule(), KPH); 
     } else {
         if(this.inState(MovingToPatient) || (this.targetPatient != null && this.targetPatient.severityCode == SeverityCode.RED)) {
-            this.setSpeed(110, KPH);
+            this.setSpeed(110 * main.trafficSchedule(), KPH);
         } else {
-            this.setSpeed(80, KPH);
+            this.setSpeed(80 * main.trafficSchedule(), KPH);
         }
     }
 }]]></Action>
@@ -5641,7 +5845,7 @@ main.sendMqttMessage("preh/ambulance/" + this.agentId + "/state", payload);]]></
 					<ReturnType><![CDATA[boolean]]></ReturnType>
 					<Id>1778495709467</Id>
 					<Name><![CDATA[isInUrbanRegion]]></Name>
-					<X>-180</X><Y>460</Y>
+					<X>-170</X><Y>410</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5660,7 +5864,7 @@ return isUrban;]]></Body>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1781420439228</Id>
 					<Name><![CDATA[getSanitizationTime]]></Name>
-					<X>-180</X><Y>440</Y>
+					<X>-170</X><Y>380</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5899,7 +6103,7 @@ return uniform(300, 600);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1776356209235</Id>
 					<Name><![CDATA[targetPatient]]></Name>
-					<X>-100</X><Y>70</Y>
+					<X>-200</X><Y>30</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5914,7 +6118,7 @@ return uniform(300, 600);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1778661525197</Id>
 					<Name><![CDATA[targetHospital]]></Name>
-					<X>-100</X><Y>100</Y>
+					<X>-200</X><Y>60</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5929,7 +6133,7 @@ return uniform(300, 600);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1778661582922</Id>
 					<Name><![CDATA[homeBase]]></Name>
-					<X>-100</X><Y>130</Y>
+					<X>-200</X><Y>90</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5941,7 +6145,7 @@ return uniform(300, 600);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1780841194387</Id>
 					<Name><![CDATA[agentId]]></Name>
-					<X>-100</X><Y>160</Y>
+					<X>-200</X><Y>120</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -5950,6 +6154,123 @@ return uniform(300, 600);]]></Body>
 						<Type><![CDATA[String]]></Type>        
 						<InitialValue Class="CodeValue">
 							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423434460</Id>
+					<Name><![CDATA[variable]]></Name>
+					<X>-200</X><Y>150</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597375</Id>
+					<Name><![CDATA[fuelLevel]]></Name>
+					<X>-200</X><Y>180</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[1.0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597379</Id>
+					<Name><![CDATA[missionsSinceMaintenance]]></Name>
+					<X>-200</X><Y>210</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597381</Id>
+					<Name><![CDATA[maintanceThreshold]]></Name>
+					<X>-200</X><Y>240</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[uniform_discr(5, 10)]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597383</Id>
+					<Name><![CDATA[tripDistance]]></Name>
+					<X>-200</X><Y>270</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597385</Id>
+					<Name><![CDATA[needsRefueling]]></Name>
+					<X>-200</X><Y>300</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[boolean]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[false]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597387</Id>
+					<Name><![CDATA[needsMaintenance]]></Name>
+					<X>-200</X><Y>330</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[boolean]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[false]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781423597389</Id>
+					<Name><![CDATA[maintenanceThreshold]]></Name>
+					<X>-200</X><Y>360</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[uniform_discr(4, 7)]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -5969,7 +6290,7 @@ return uniform(300, 600);]]></Body>
     "{\"state\":\"atRest\",\"lat\":" + getLatitude()
     + ",\"lon\":" + getLongitude() + "}"
 );
-]]></EntryAction>
+this.tripDistance = 0;]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -5987,6 +6308,7 @@ main.sendMqttMessage(
     "preh/medhelicopter/" + agentId + "/state",
     "{\"state\":\"MovingToPatient\",\"patientId\":\"" + targetPatient.agentId + "\"}"
 );
+tripDistance += distanceTo(targetPatient);
 moveToStraight(targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -6039,7 +6361,16 @@ send("Start transport", targetPatient);]]></EntryAction>
 );
 this.targetPatient = null;
 this.targetHospital = null;
-this.moveToStraight(homeBase);]]></EntryAction>
+tripDistance += distanceTo(homeBase);
+this.moveToStraight(homeBase);
+this.fuelLevel -= (tripDistance / 1000.0) * 0.005;
+this.missionsSinceMaintenance++;
+
+if(this.fuelLevel < 0.25) {
+	this.needsRefueling = true;
+} else if (this.missionsSinceMaintenance >= this.maintenanceThreshold) {
+	this.needsMaintenance = true;
+}]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -6058,6 +6389,53 @@ main.sendMqttMessage(
     "{\"state\":\"Handover\",\"patientId\":\"" + targetPatient.agentId + "\"}"
 );
 this.targetHospital.patientAssisted++;]]></EntryAction>
+						<FillColor>-10496</FillColor>
+					</Properties>
+				</StatechartElement>
+				<StatechartElement Class="State" ParentState="ROOT_NODE">
+					<Id>1781424206178</Id>
+					<Name><![CDATA[Refueling]]></Name>
+					<X>450</X><Y>110</Y>
+					<Label><X>10</X><Y>10</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties Width="100" Height="30">
+						<EntryAction><![CDATA[this.fuelLevel = 1.0;
+traceln("Refueling " + agentId);]]></EntryAction>
+						<FillColor>-10496</FillColor>
+					</Properties>
+				</StatechartElement>
+				<StatechartElement Class="State" ParentState="ROOT_NODE">
+					<Id>1781424280742</Id>
+					<Name><![CDATA[UnderMaintenance]]></Name>
+					<X>430</X><Y>190</Y>
+					<Label><X>10</X><Y>10</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties Width="140" Height="30">
+						<EntryAction><![CDATA[traceln(agentId + " under maintenance");]]></EntryAction>
+						<ExitAction><![CDATA[this.missionsSinceMaintenance = 0;
+this.maintenanceThreshold = uniform_discr(5, 10);]]></ExitAction>
+						<FillColor>-10496</FillColor>
+					</Properties>
+				</StatechartElement>
+				<StatechartElement Class="State" ParentState="ROOT_NODE">
+					<Id>1781424653970</Id>
+					<Name><![CDATA[Sanitizing]]></Name>
+					<X>366</X><Y>466</Y>
+					<Label><X>10</X><Y>10</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties Width="140" Height="30">
+						<EntryAction><![CDATA[String payload = "{" +
+    "\"state\":\"Sanitizing\"," +
+    "\"patientId\":\"" + (this.targetPatient != null ? this.targetPatient.agentId : "null") + "\"" +
+    "}";
+    
+main.sendMqttMessage("preh/medhelicopter/" + agentId + "/state", payload);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -6121,22 +6499,14 @@ this.targetHospital.patientAssisted++;]]></EntryAction>
 					</Points>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1776441234563" Target="1776441234565" Trigger="timeout">
-						<Action><![CDATA[Hospital bestHospital = null;
-double minHospDist = infinity;
-
-for (Hospital h : main.hospitalsCollection) {
-	if(h.assistanceLevel == 2) {
-		double d = this.distanceTo(h);
-	    if (d < minHospDist) {
-	        minHospDist = d;
-	        bestHospital = h;
-	    }
-	}
+						<Action><![CDATA[if (this.targetPatient.severityCode == SeverityCode.RED || 
+		this.targetPatient.gcsScore <= main.gcsThreshold) {
+	this.targetHospital = main.hospitalCesena;
+} else {
+	this.targetHospital = getNearestAgent(main.hospitalsCollection);
 }
-
-this.targetHospital = bestHospital;
 this.moveTo(targetHospital);
-traceln("Helicopter moving to " + bestHospital);]]></Action>
+traceln("Helicopter moving to " + targetHospital);]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[targetPatient.severityCode == SeverityCode.RED ? main.takingPatientTimeUB : main.takingPatientTimeLB]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
@@ -6249,17 +6619,17 @@ traceln("Helicopter moving to " + bestHospital);]]></Action>
 				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
 					<Id>1776518557053</Id>
 					<Name><![CDATA[transition5]]></Name>
-					<X>290</X><Y>455</Y>
+					<X>380</X><Y>440</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>false</ShowLabel>
 					<Points>
 						<Point><X>0</X><Y>0</Y></Point>
-						<Point><X>-50</X><Y>10</Y></Point>
+						<Point><X>40</X><Y>26</Y></Point>
 					</Points>
 					<IconOffset>20.0</IconOffset>
-					<Properties Source="1776518542910" Target="1776441234567" Trigger="timeout">
+					<Properties Source="1776518542910" Target="1781424653970" Trigger="timeout">
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[main.timeHandoverHelicopter + (this.targetHospital.patientAssisted * 10)]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
@@ -6308,7 +6678,185 @@ traceln("Helicopter moving to " + bestHospital);]]></Action>
 						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
 					</Properties>	
 				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781424206180</Id>
+					<Name><![CDATA[transition10]]></Name>
+					<X>330</X><Y>160</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>180</X><Y>0</Y></Point>
+						<Point><X>180</X><Y>30</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1776441234557" Target="1781424280742" Trigger="condition">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[needsMaintenance]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781424206182</Id>
+					<Name><![CDATA[transition7]]></Name>
+					<X>510</X><Y>140</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>0</X><Y>10</Y></Point>
+						<Point><X>-180</X><Y>10</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1781424206178" Target="1776441234557" Trigger="timeout">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[uniform(5, 10)]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[true]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781424206184</Id>
+					<Name><![CDATA[transition12]]></Name>
+					<X>320</X><Y>140</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>0</X><Y>-10</Y></Point>
+						<Point><X>130</X><Y>-10</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1776441234557" Target="1781424206178" Trigger="condition">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[needsRefueling]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781424206186</Id>
+					<Name><![CDATA[transition11]]></Name>
+					<X>430</X><Y>210</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>-30</X><Y>0</Y></Point>
+						<Point><X>-110</X><Y>-40</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1781424280742" Target="1776441234557" Trigger="timeout">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[triangular(1, 2, 3)]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[true]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781424653976</Id>
+					<Name><![CDATA[transition8]]></Name>
+					<X>366</X><Y>476</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>-101</X><Y>0</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1781424653970" Target="1776441234567" Trigger="timeout">
+						<Action><![CDATA[traceln("Sanification ended for " + agentId)]]></Action>
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[getSanitizationTime()]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[true]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
 			</StatechartElements>
+			<Functions>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[double]]></ReturnType>
+					<Id>1781424709683</Id>
+					<Name><![CDATA[getSanitizationTime]]></Name>
+					<X>-200</X><Y>390</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[if (this.targetPatient.hasExternalHemorrhage) {
+    traceln("Ambulance " + this.agentId + " needs sanification due to patient hemorrhage");
+    return uniform(1200, 2400);
+}
+
+if (this.targetPatient.severityCode == SeverityCode.RED) {
+    return uniform(900, 1800);
+}
+
+return uniform(300, 600);]]></Body>
+				</Function>
+			</Functions>
 			<AgentLinks>
 				<AgentLink>
 					<Id>1776353883298</Id>
@@ -6949,13 +7497,17 @@ main.totalPreHTimeData.add(totalTime);]]></Action>
 					<Properties Source="1778853875039" Target="1778853875039" Trigger="timeout">
 						<Action><![CDATA[if (!this.isClinicalDeteriorated) {
     this.isClinicalDeteriorated = true;
-    this.severityCode = SeverityCode.RED; 
+    switch(severityCode) {
+    	case WHITE: severityCode = SeverityCode.GREEN; break;
+    	case GREEN: severityCode = SeverityCode.YELLOW; break;
+    	case YELLOW: severityCode = SeverityCode.RED; break;
+    }
     this.gcsScore = uniform_discr(3, 7);
     traceln("Problem with patient " + agentId + ", calling up an advaced vehicle");
     String alertPayload = "{" +
         "\"state\":\"WaitingSupport\"," +
         "\"event\":\"DETERIORATION\"," +
-        "\"severityCode\":\"RED\"," +
+        "\"severityCode\":\"" + this.severityCode + "\"," +
         "\"isAirwayObstructed\":" + this.isAirwayObstructed + "," +
         "\"hasExternalHemorrhage\":" + this.hasExternalHemorrhage +
         "}";
@@ -7549,7 +8101,7 @@ for (Ambulance a : main.ambulancesCollection) {
 }
 
 for (MedCar m : main.medCarsCollection) {
-    if (m.inState(MedCar.atRest) || m.inState(MedCar.Returning)) {
+    if (m.inState(MedCar.atRest) || m.inState(MedCar.Returning) && !(m.needsMaintenance || m.needsRefueling)) {
         double d = m.distanceTo(p);
         if (d < minDistanceCar) {
             minDistanceCar = d;
@@ -7558,7 +8110,11 @@ for (MedCar m : main.medCarsCollection) {
     }
 }
 
-MedHelicopter freeHeli = findFirst(main.medHelicopters, h -> h.inState(MedHelicopter.atRest));
+MedHelicopter freeHeli = findFirst(main.medHelicopters, h -> h.inState(MedHelicopter.atRest) && !(h.needsMaintenance || h.needsRefueling));
+
+if (!main.isWeatherSafeForFlight) {
+	freeHeli = null;
+}
 
 if (closestAmbulance == null) {
     traceln("No ambulance ready. Waiting for support");
@@ -7696,55 +8252,57 @@ return closestHospital;]]></Body>
 						<Name><![CDATA[p]]></Name>
 						<Type><![CDATA[Patient]]></Type>
 					</Parameter>
-					<Body><![CDATA[MedCar closestCar = null;
-double minDistance = Double.MAX_VALUE;
-
-for (MedCar car : main.medCarsCollection) {
-    if (car.inState(MedCar.atRest)) {
-        double dist = p.distanceTo(car);
-        if (dist < minDistance) {
-            minDistance = dist;
-            closestCar = car;
-        }
-    }
-}
-
-if (closestCar != null) {
-    closestCar.targetPatient = p;
-    
-    send(p, closestCar); 
-    
-    String dispatchPayload = "{" +
-        "\"patientId\":\"" + p.agentId + "\"," +
-        "\"event\":\"BACKUP_UPGRADE\"," +
-        "\"severityCode\":\"RED\"," +
-        "\"medCarId\":\"" + closestCar.agentId + "\"," +
-        "\"distanceMeters\":" + (int)minDistance +
-        "}";
-        
-    main.sendMqttMessage("preh/operator/dispatch", dispatchPayload);
-    traceln("FALLBACK: MedCar " + closestCar.agentId + " sended for " + p.agentId);
-
-} else {
-    traceln("Trying to send MedHelicopter");
-    
-    MedHelicopter helicopter = findFirst(main.medHelicopters, h -> h.inState(MedHelicopter.atRest));
-    if (helicopter != null) {
-        helicopter.targetPatient = p;
-        send(p, helicopter);
-        
-        String heliPayload = "{" +
-            "\"patientId\":\"" + p.agentId + "\"," +
-            "\"event\":\"BACKUP_UPGRADE_HELI\"," +
-            "\"severityCode\":\"RED\"," +
-            "\"helicopterId\":\"" + helicopter.agentId + "\"" +
-            "}";
-            
-        main.sendMqttMessage("preh/operator/dispatch", heliPayload);
-        traceln("FALLBACK: MedHelicopter " + helicopter.agentId + " sent for " + p.agentId);
-    } else {
-        traceln("No advaced vehicle are available for supporting " + p.agentId);
-    }
+					<Body><![CDATA[if(p.severityCode == SeverityCode.RED) {
+	MedCar closestCar = null;
+	double minDistance = Double.MAX_VALUE;
+	
+	for (MedCar car : main.medCarsCollection) {
+	    if (car.inState(MedCar.atRest)) {
+	        double dist = p.distanceTo(car);
+	        if (dist < minDistance) {
+	            minDistance = dist;
+	            closestCar = car;
+	        }
+	    }
+	}
+	
+	if (closestCar != null) {
+	    closestCar.targetPatient = p;
+	    
+	    send(p, closestCar); 
+	    
+	    String dispatchPayload = "{" +
+	        "\"patientId\":\"" + p.agentId + "\"," +
+	        "\"event\":\"BACKUP_UPGRADE\"," +
+	        "\"severityCode\":\"RED\"," +
+	        "\"medCarId\":\"" + closestCar.agentId + "\"," +
+	        "\"distanceMeters\":" + (int)minDistance +
+	        "}";
+	        
+	    main.sendMqttMessage("preh/operator/dispatch", dispatchPayload);
+	    traceln("FALLBACK: MedCar " + closestCar.agentId + " sended for " + p.agentId);
+	
+	} else {
+	    traceln("Trying to send MedHelicopter");
+	    
+	    MedHelicopter helicopter = findFirst(main.medHelicopters, h -> h.inState(MedHelicopter.atRest));
+	    if (helicopter != null) {
+	        helicopter.targetPatient = p;
+	        send(p, helicopter);
+	        
+	        String heliPayload = "{" +
+	            "\"patientId\":\"" + p.agentId + "\"," +
+	            "\"event\":\"BACKUP_UPGRADE_HELI\"," +
+	            "\"severityCode\":\"RED\"," +
+	            "\"helicopterId\":\"" + helicopter.agentId + "\"" +
+	            "}";
+	            
+	        main.sendMqttMessage("preh/operator/dispatch", heliPayload);
+	        traceln("FALLBACK: MedHelicopter " + helicopter.agentId + " sent for " + p.agentId);
+	    } else {
+	        traceln("No advaced vehicle are available for supporting " + p.agentId);
+	    }
+	}
 }]]></Body>
 				</Function>
 			</Functions>
@@ -8163,7 +8721,7 @@ if (closestCar != null) {
 				<Variable Class="PlainVariable">
 					<Id>1778085925406</Id>
 					<Name><![CDATA[homeBase]]></Name>
-					<X>-110</X><Y>40</Y>
+					<X>-200</X><Y>40</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -8175,7 +8733,7 @@ if (closestCar != null) {
 				<Variable Class="PlainVariable">
 					<Id>1778085938795</Id>
 					<Name><![CDATA[targetPatient]]></Name>
-					<X>-110</X><Y>60</Y>
+					<X>-200</X><Y>60</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -8187,7 +8745,7 @@ if (closestCar != null) {
 				<Variable Class="PlainVariable">
 					<Id>1780842854772</Id>
 					<Name><![CDATA[agentId]]></Name>
-					<X>-110</X><Y>20</Y>
+					<X>-200</X><Y>20</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -8196,6 +8754,111 @@ if (closestCar != null) {
 						<Type><![CDATA[String]]></Type>        
 						<InitialValue Class="CodeValue">
 							<Code><![CDATA[""]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422860952</Id>
+					<Name><![CDATA[fuelLevel]]></Name>
+					<X>-200</X><Y>90</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[1.0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422861610</Id>
+					<Name><![CDATA[missionsSinceMaintenance]]></Name>
+					<X>-200</X><Y>120</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422861612</Id>
+					<Name><![CDATA[maintanceThreshold]]></Name>
+					<X>-200</X><Y>150</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[uniform_discr(5, 10)]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422861614</Id>
+					<Name><![CDATA[tripDistance]]></Name>
+					<X>-200</X><Y>180</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[double]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[0]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422861616</Id>
+					<Name><![CDATA[needsRefueling]]></Name>
+					<X>-200</X><Y>210</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[boolean]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[false]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422861618</Id>
+					<Name><![CDATA[needsMaintenance]]></Name>
+					<X>-200</X><Y>240</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[boolean]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[false]]></Code>
+						</InitialValue>
+					</Properties>
+				</Variable>
+				<Variable Class="PlainVariable">
+					<Id>1781422861620</Id>
+					<Name><![CDATA[maintenanceThreshold]]></Name>
+					<X>-200</X><Y>270</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
+						<Type><![CDATA[int]]></Type>        
+						<InitialValue Class="CodeValue">
+							<Code><![CDATA[uniform_discr(5, 10)]]></Code>
 						</InitialValue>
 					</Properties>
 				</Variable>
@@ -8214,7 +8877,7 @@ if (closestCar != null) {
     "preh/medcar/" + agentId + "/state",
     "{\"state\":\"atRest\"}"
 );
-]]></EntryAction>
+this.tripDistance = 0;]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -8231,6 +8894,7 @@ if (closestCar != null) {
     "preh/medcar/" + agentId + "/state",
     "{\"state\":\"MovingToPatient\",\"patientId\":\"" + targetPatient.agentId + "\"}"
 );
+tripDistance += distanceTo(targetPatient);
 moveTo(targetPatient);]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -8264,7 +8928,45 @@ moveTo(targetPatient);]]></EntryAction>
     "preh/medcar/" + agentId + "/state",
     "{\"state\":\"Returning\"}"
 );
-moveTo(homeBase)]]></EntryAction>
+moveTo(homeBase);
+tripDistance += distanceTo(homeBase);
+this.fuelLevel -= (tripDistance / 1000.0) * 0.005;
+this.missionsSinceMaintenance++;
+
+if(this.fuelLevel < 0.2) {
+	this.needsRefueling = true;
+} else if (this.missionsSinceMaintenance >= this.maintenanceThreshold) {
+	this.needsMaintenance = true;
+}]]></EntryAction>
+						<FillColor>-10496</FillColor>
+					</Properties>
+				</StatechartElement>
+				<StatechartElement Class="State" ParentState="ROOT_NODE">
+					<Id>1781422964734</Id>
+					<Name><![CDATA[Refueling]]></Name>
+					<X>300</X><Y>80</Y>
+					<Label><X>10</X><Y>10</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties Width="100" Height="30">
+						<EntryAction><![CDATA[this.fuelLevel = 1.0;
+traceln("Refueling " + agentId);]]></EntryAction>
+						<FillColor>-10496</FillColor>
+					</Properties>
+				</StatechartElement>
+				<StatechartElement Class="State" ParentState="ROOT_NODE">
+					<Id>1781423028546</Id>
+					<Name><![CDATA[UnderMaintance]]></Name>
+					<X>290</X><Y>160</Y>
+					<Label><X>10</X><Y>10</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties Width="140" Height="30">
+						<EntryAction><![CDATA[traceln(agentId + " under maintenance");]]></EntryAction>
+						<ExitAction><![CDATA[this.missionsSinceMaintenance = 0;
+this.maintenanceThreshold = uniform_discr(5, 10);]]></ExitAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
 				</StatechartElement>
@@ -8445,7 +9147,197 @@ this.targetPatient = null;]]></Action>
 						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
 					</Properties>	
 				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781422964738</Id>
+					<Name><![CDATA[transition10]]></Name>
+					<X>200</X><Y>130</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>160</X><Y>0</Y></Point>
+						<Point><X>160</X><Y>30</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1778086679871" Target="1781423028546" Trigger="condition">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[needsMaintenance]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781422964740</Id>
+					<Name><![CDATA[transition7]]></Name>
+					<X>360</X><Y>110</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>0</X><Y>10</Y></Point>
+						<Point><X>-160</X><Y>10</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1781422964734" Target="1778086679871" Trigger="timeout">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[uniform(5, 10)]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[MINUTE]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[true]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781422964742</Id>
+					<Name><![CDATA[transition12]]></Name>
+					<X>180</X><Y>110</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>0</X><Y>-20</Y></Point>
+						<Point><X>120</X><Y>-20</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1778086679871" Target="1781422964734" Trigger="condition">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[needsRefueling]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
+				<StatechartElement Class="Transition" ParentState="ROOT_NODE">
+					<Id>1781423038756</Id>
+					<Name><![CDATA[transition11]]></Name>
+					<X>290</X><Y>170</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>false</ShowLabel>
+					<Points>
+						<Point><X>0</X><Y>0</Y></Point>
+						<Point><X>-40</X><Y>0</Y></Point>
+						<Point><X>-112.4</X><Y>-30</Y></Point>
+					</Points>
+					<IconOffset>20.0</IconOffset>
+					<Properties Source="1781423028546" Target="1778086679871" Trigger="timeout">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[triangular(1, 2, 3)]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[HOUR]]></Unit>
+						</Timeout>
+						<Condition><![CDATA[true]]></Condition>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<MessageType><![CDATA[Object]]></MessageType>
+						<DefaultTransition>true</DefaultTransition>
+						<FilterType><![CDATA[unconditionally]]></FilterType>
+						<EqualsExpression><![CDATA["text"]]></EqualsExpression>
+						<SatisfiesExpression><![CDATA[true]]></SatisfiesExpression>
+					</Properties>	
+				</StatechartElement>
 			</StatechartElements>
+			<Events>
+				<Event>
+					<Id>1781432263949</Id>
+					<Name><![CDATA[speedControl]]></Name>
+					<X>-200</X><Y>350</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Properties TriggerType="rate" Mode="occuresOnce">
+						<Timeout Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</Timeout>
+						<Rate Class="CodeUnitValue">
+							<Code><![CDATA[10]]></Code>
+							<Unit Class="RateUnits"><![CDATA[PER_SECOND]]></Unit>
+						</Rate>
+						<Id>1781432263947</Id>
+						<OccurrenceAtTime>true</OccurrenceAtTime>
+						<OccurrenceDate>1778572800000</OccurrenceDate>
+						<OccurrenceTime Class="CodeUnitValue">
+							<Code><![CDATA[0]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</OccurrenceTime>
+						<RecurrenceCode Class="CodeUnitValue">
+							<Code><![CDATA[1]]></Code>
+							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
+						</RecurrenceCode>
+						<Condition><![CDATA[false]]></Condition>
+					</Properties>
+					<Action><![CDATA[if (this.inState(MovingToPatient) || this.inState(Returning)) {
+    
+    if(isInUrbanRegion()) {
+        this.setSpeed(50 * main.trafficSchedule(), KPH); 
+    } else {
+        if(this.inState(MovingToPatient) || (this.targetPatient != null && this.targetPatient.severityCode == SeverityCode.RED)) {
+            this.setSpeed(110 * main.trafficSchedule(), KPH);
+        } else {
+            this.setSpeed(80 * main.trafficSchedule(), KPH);
+        }
+    }
+}]]></Action>
+				</Event>
+			</Events>
+			<Functions>
+				<Function AccessType="default" StaticFunction="false">
+					<ReturnModificator>RETURNS_VALUE</ReturnModificator>
+					<ReturnType><![CDATA[boolean]]></ReturnType>
+					<Id>1781432302444</Id>
+					<Name><![CDATA[isInUrbanRegion]]></Name>
+					<X>-200</X><Y>310</Y>
+					<Label><X>10</X><Y>0</Y></Label>
+					<PublicFlag>false</PublicFlag>
+					<PresentationFlag>true</PresentationFlag>
+					<ShowLabel>true</ShowLabel>
+					<Body><![CDATA[boolean isUrban = false;
+for(GISRegion zone : main.urbanRegionCollection) {
+    if(zone.contains(this.getX(), this.getY())) {
+        isUrban = true;
+        break;
+    }
+}
+return isUrban;]]></Body>
+				</Function>
+			</Functions>
 			<AgentLinks>
 				<AgentLink>
 					<Id>1778085914536</Id>
