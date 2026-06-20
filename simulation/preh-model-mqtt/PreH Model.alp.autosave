@@ -8409,7 +8409,6 @@ MedCar closestCar = null;
 double minDistance = infinity;
 double minDistanceCar = infinity;
 
-// 1. Ricerca Ambulanze con Fallback Euclideo in caso di sfasamento indici GIS
 for (Ambulance a : main.ambulancesCollection) {
     boolean operative = a.isH24 || (main.dayRoutine.getValue() == 1);
     if (operative && (a.inState(Ambulance.atRest) || a.inState(Ambulance.Returning)) && !(a.needsMaintenance || a.needsRefueling)) {
@@ -8457,7 +8456,6 @@ if (closestAmbulance == null) {
 
 send("Ambulance Call received, taking action", p);
 
-// 3. Allocazione Mezzi con disinnesco preventivo e protetto delle vecchie rotte
 if (p.severityCode == SeverityCode.RED) {
     if (minDistance > main.distanceThreshold && freeHeli != null) {
         p.medicalAssisted = true; 
@@ -8472,6 +8470,7 @@ if (p.severityCode == SeverityCode.RED) {
     } else if (closestCar != null) {
         p.medicalAssisted = false;
         p.inHelicopter = false;
+        p.advancedSupportRequested = true;
         
         traceln("Code: " + p.severityCode + ", Distance: " + minDistance/1000 + "km -> Sending MedCar and Ambulance");
         
