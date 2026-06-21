@@ -12,6 +12,6 @@ FROM eclipse-temurin:21.0.1-jre-jammy
 WORKDIR /app
 RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /app/target/preh-wldt-system-1.0-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/emergency-wldt-subsystem-1.0-SNAPSHOT.jar app.jar
 
 CMD ["java", "-jar", "app.jar"]
