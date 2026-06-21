@@ -1,6 +1,6 @@
-package it.ausl.emergency.adapter.digital;
+package it.ausl.emergency.adapter.digital.patient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import it.ausl.emergency.adapter.configuration.PatientAdapterConfiguration;
 import it.ausl.emergency.model.payload.PatientTelemetryPayload;
 import it.ausl.emergency.utils.PatientKeywords;
 import it.wldt.adapter.digital.DigitalAdapter;
@@ -15,12 +15,10 @@ import java.util.stream.Collectors;
  * Exposes the Digital Twin internal state boundaries to external monitoring systems
  * by asynchronously processing transactional state updates and core Domain Events.
  */
-public class PatientDigitalAdapter extends DigitalAdapter<Void> {
+public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfiguration> {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-    public PatientDigitalAdapter(String id) {
-        super(id, null);
+    public PatientDigitalAdapter(String id, PatientAdapterConfiguration configuration) {
+        super(id, configuration);
     }
 
     // ── Lifecycle Callbacks ──────────────────────────────────────────────────

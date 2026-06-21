@@ -19,7 +19,7 @@ import it.wldt.core.state.DigitalTwinStateProperty;
  * Shadowing Function del Paziente: è il componente che traduce lo stato
  * dell'agente Paziente della
  * simulazione (ricevuto tramite il
- * {@link it.ausl.emergency.adapter.physical.PatientPhysicalAdapter})
+ * {@link it.ausl.emergency.adapter.physical.patient.PatientPhysicalAdapter})
  * nello stato del Digital Twin, esposto poi verso l'esterno tramite i Digital
  * Adapter.
  *

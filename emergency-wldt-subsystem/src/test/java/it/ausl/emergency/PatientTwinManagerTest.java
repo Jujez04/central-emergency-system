@@ -1,6 +1,6 @@
 package it.ausl.emergency;
 
-import it.ausl.emergency.adapter.physical.PatientMqttIngestionAdapter;
+import it.ausl.emergency.adapter.physical.patient.PatientMqttIngestionAdapter;
 import it.ausl.emergency.manager.PatientTwinManager;
 import it.ausl.emergency.model.payload.PatientTelemetryPayload;
 import it.ausl.emergency.twin.PatientDigitalTwin;
@@ -342,9 +342,5 @@ public class PatientTwinManagerTest {
             Thread.sleep(200); 
         }
         fail("Timeout Error: The provisioned child instance '" + agentId + "' failed to initialize its tracking state map properties within " + timeoutMs + "ms");
-    }
-
-    private static void log(String phase) {
-        System.out.println("\n[TEST] ══ " + phase.toUpperCase() + " ==========================\n");
     }
 }

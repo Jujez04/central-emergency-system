@@ -1,6 +1,6 @@
 package it.ausl.emergency;
 
-import it.ausl.emergency.adapter.physical.PatientMqttIngestionAdapter;
+import it.ausl.emergency.adapter.physical.patient.PatientMqttIngestionAdapter;
 import it.ausl.emergency.manager.PatientTwinManager;
 import it.wldt.core.engine.DigitalTwinEngine;
 

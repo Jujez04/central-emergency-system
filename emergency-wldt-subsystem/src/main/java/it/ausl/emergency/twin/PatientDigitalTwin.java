@@ -1,7 +1,8 @@
 package it.ausl.emergency.twin;
 
-import it.ausl.emergency.adapter.digital.PatientDigitalAdapter;
-import it.ausl.emergency.adapter.physical.PatientPhysicalAdapter;
+import it.ausl.emergency.adapter.configuration.PatientAdapterConfiguration;
+import it.ausl.emergency.adapter.digital.patient.PatientDigitalAdapter;
+import it.ausl.emergency.adapter.physical.patient.PatientPhysicalAdapter;
 import it.ausl.emergency.shadowing.PatientShadowingFunction;
 import it.wldt.core.engine.DigitalTwin;
 import it.wldt.exception.EventBusException;
@@ -23,8 +24,9 @@ public class PatientDigitalTwin extends DigitalTwin {
     EventBusException, WldtRuntimeException, WldtWorkerException, WldtDigitalTwinStateException {
         super(digitalTwinId, shadowingFunction);
         this.id = digitalTwinId;
-        this.physicalAdapter = new PatientPhysicalAdapter(id);
-        this.digitalAdapter = new PatientDigitalAdapter(id);
+        PatientAdapterConfiguration sharedConfig = new PatientAdapterConfiguration();
+        this.physicalAdapter = new PatientPhysicalAdapter(id, sharedConfig);
+        this.digitalAdapter = new PatientDigitalAdapter(id, sharedConfig);
         this.shadowingFunction = shadowingFunction;
         try {
             this.addPhysicalAdapter(physicalAdapter);

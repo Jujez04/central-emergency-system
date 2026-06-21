@@ -1,4 +1,4 @@
-package it.ausl.emergency.adapter.physical;
+package it.ausl.emergency.adapter.physical.patient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.ausl.emergency.manager.PatientTwinManager;
