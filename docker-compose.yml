@@ -1,17 +1,17 @@
 services:
   mosquitto:
     image: eclipse-mosquitto:latest
-    container_name: preh-mosquitto
+    container_name: emergency-mosquitto
     ports:
       - "1883:1883"
     volumes:
       - ./mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
     restart: unless-stopped
     networks:
-      - preh-network
-  preh-wldt-system:
+      - emergency-network
+  emergency-wldt-subsystem:
     build:
-      context: ./preh-wldt-system
+      context: ./emergency-wldt-subsystem
     container_name: emergency-wldt-subsystem
     environment:
       - MQTT_BROKER_URL=tcp://mosquitto:1883

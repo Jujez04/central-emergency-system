@@ -5883,8 +5883,8 @@ String payload = "{"
     + "\"missionsSinceMaintenance\":" + missionsSinceMaintenance + ","
     + "\"needsRefueling\":" + needsRefueling + ","
     + "\"needsMaintenance\":" + needsMaintenance + ","
-    + "\"queueLen\":" + (targetHospital != null ? targetHospital.patientAssisted : 0) + ","
-    + "\"timestamp\":" + time()
+    + "\"timestamp\":" + time() + ","
+    + "\"tripDistanceSinceEmergency\":" + tripDistance
     + "}";
 main.sendMqttMessage(topic, payload);]]></Body>
 				</Function>
@@ -6169,18 +6169,6 @@ main.sendMqttMessage(topic, payload);]]></Body>
 						<InitialValue Class="CodeValue">
 							<Code><![CDATA[""]]></Code>
 						</InitialValue>
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
-					<Id>1781423434460</Id>
-					<Name><![CDATA[variable]]></Name>
-					<X>-200</X><Y>150</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[double]]></Type>        
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
@@ -6874,6 +6862,8 @@ String payload = "{"
     + "\"needsRefueling\":" + needsRefueling + ","
     + "\"needsMaintenance\":" + needsMaintenance + ","
     + "\"timestamp\":" + time()
+    + "\"hospitalId\":\"" + (targetHospital != null ? targetHospital.getName() : "null") + "\","
+    + "\"tripDistanceSinceEmergency\":" + tripDistance
     + "}";
 main.sendMqttMessage(topic, payload);]]></Body>
 				</Function>
@@ -9767,7 +9757,8 @@ String payload = "{"
     + "\"missionsSinceMaintenance\":" + missionsSinceMaintenance + ","
     + "\"needsRefueling\":" + needsRefueling + ","
     + "\"needsMaintenance\":" + needsMaintenance + ","
-    + "\"timestamp\":" + time()
+    + "\"timestamp\":" + time() + ","
+    + "\"tripDistanceSinceEmergency\":" + tripDistance
     + "}";
 main.sendMqttMessage(topic, payload);]]></Body>
 				</Function>
@@ -10331,8 +10322,8 @@ main.sendMqttMessage(topic, payload);]]></Body>
 			<Location>FILE_SYSTEM</Location>
 		</Resource>
 		<Resource>
-			<Id>1779798517072</Id>
-			<Path><![CDATA[org.eclipse.paho.client.mqttv3-1.2.5.jar]]></Path>
+			<Id>1782029326650</Id>
+			<Path><![CDATA[org.eclipse.paho.client.mqttv3_1.2.5.jar]]></Path>
 			<ReferencedFromUserCode>false</ReferencedFromUserCode>
 			<Location>FILE_SYSTEM</Location>
 		</Resource>
@@ -10352,7 +10343,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 	<ClassPathEntry>
 		<ResourceReference>
 			<PackageName><![CDATA[preh_model]]></PackageName>
-			<ClassName><![CDATA[org.eclipse.paho.client.mqttv3-1.2.5.jar]]></ClassName>
+			<ClassName><![CDATA[org.eclipse.paho.client.mqttv3_1.2.5.jar]]></ClassName>
 		</ResourceReference>
 		<Imported>true</Imported>
 		<Folder>false</Folder>
