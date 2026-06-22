@@ -6,19 +6,15 @@ import it.ausl.emergency.manager.VehicleTwinManager;
 import it.ausl.emergency.twin.AmbulanceDigitalTwin;
 import it.ausl.emergency.twin.MedCarDigitalTwin;
 import it.ausl.emergency.twin.MedHelicopterDigitalTwin;
+import it.ausl.emergency.payload.MedHelicopterTelemetryPayload;
 import it.wldt.core.engine.DigitalTwin;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-/**
- * Ingestion Adapter dedicato alla flotta veicoli.
- * Ascolta i messaggi di registrazione strutturati e smista lo stato verso i Physical Adapter di WLDT.
- */
 public class VehicleMqttIngestionAdapter implements MqttCallback {
 
     private static final String REGISTRY_TOPIC = "ces/registry";
-    // Ascolta la telemetria di tutte le categorie di veicoli (ambulance, medcar, medhelicopter)
-    private static final String VEHICLE_STATE_WILDCARD = "ces/+/+/state"; 
+    private static final String VEHICLE_STATE_WILDCARD = "ces/+/+/state";
     private static final int QOS = 1;
 
     private final String brokerUrl;
@@ -34,17 +30,15 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
     public void start() throws MqttException {
         client = new MqttClient(brokerUrl, "ces-vehicle-ingestion-" + System.currentTimeMillis(), new MemoryPersistence());
         client.setCallback(this);
-        
+
         MqttConnectOptions opts = new MqttConnectOptions();
         opts.setAutomaticReconnect(true);
         opts.setCleanSession(true);
-        
+
         client.connect(opts);
-        
-        // Doppia sottoscrizione: Logica di Creazione + Logica di Stato Telemetrico
         client.subscribe(REGISTRY_TOPIC, QOS);
         client.subscribe(VEHICLE_STATE_WILDCARD, QOS);
-        
+
         System.out.println("[VehicleMqttIngestionAdapter] Ingestion attiva su broker: " + brokerUrl);
     }
 
@@ -61,7 +55,6 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
             String payloadString = new String(message.getPayload());
             JsonNode rootNode = mapper.readTree(payloadString);
 
-            // CASO 1: Gestione Messaggio di Registrazione Unica (ces/registry)
             if (topic.equals(REGISTRY_TOPIC)) {
                 String action = rootNode.path("action").asText();
                 String type = rootNode.path("type").asText();
@@ -73,56 +66,52 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
                 return;
             }
 
-            // CASO 2: Gestione Messaggi Telemetrici (ces/ambulance/AMB-01/state, ces/medcar/CAR-02/state, ecc.)
             if (topic.startsWith("ces/") && topic.endsWith("/state")) {
                 String[] segments = topic.split("/");
                 if (segments.length < 4) return;
 
-                String vehicleType = segments[1]; // ambulance, medcar, medhelicopter
-                String agentId = segments[2];     // AMB-XX, CAR-XX, HEL-XX
+                String vehicleType = segments[1]; 
+                String agentId = segments[2];     
 
                 DigitalTwin twin = twinManager.getVehicleTwin(agentId);
                 if (twin == null) {
-                    // Fallback di sicurezza: se la telemetria arriva prima del messaggio di registry, creiamo il twin on-the-fly
                     twinManager.onVehicleCreated(vehicleType, agentId);
                     twin = twinManager.getVehicleTwin(agentId);
                 }
 
                 if (twin != null) {
-                    // Propaga l'aggiornamento telemetrico grezzo o deserializzato al rispettivo Physical Adapter interno
                     forwardTelemetryToAdapter(twin, vehicleType, payloadString);
                 }
             }
-
         } catch (Exception e) {
             System.err.println("[VehicleMqttIngestionAdapter] Errore elaborazione messaggio su topic [" + topic + "]: " + e.getMessage());
         }
     }
 
     /**
-     * Dispatch polimorfico verso lo specifico Physical Adapter del veicolo target.
+     * Complete concrete polymorphic dispatch routing toward vehicle specific physical adapters.
      */
     private void forwardTelemetryToAdapter(DigitalTwin twin, String vehicleType, String rawJson) {
-        // Supponendo che i tuoi Physical Adapter abbiano dei metodi pubblici esposti per iniettare i dati di simulazione 
-        // (esattamente come nel tuo PatientTwinManager con twin.getPhysicalAdapter().onPatientTelemetryReceived(payload))
         try {
             switch (vehicleType.toLowerCase()) {
                 case "ambulance":
                     AmbulanceDigitalTwin ambTwin = (AmbulanceDigitalTwin) twin;
-                    // TODO: Integra con il reale metodo del tuo AmbulancePhysicalAdapter, ad esempio:
-                    // ambTwin.getPhysicalAdapter().onVehicleTelemetryReceived(rawJson);
+                    ambTwin.getPhysicalAdapter().onAmbulanceJsonTelemetryReceived(rawJson);
                     break;
                 case "medcar":
                     MedCarDigitalTwin carTwin = (MedCarDigitalTwin) twin;
-                    // carTwin.getPhysicalAdapter().onVehicleTelemetryReceived(rawJson);
+                    carTwin.getPhysicalAdapter().onMedCarJsonTelemetryReceived(rawJson);
                     break;
                 case "medhelicopter":
                     MedHelicopterDigitalTwin helTwin = (MedHelicopterDigitalTwin) twin;
-                    // helTwin.getPhysicalAdapter().onVehicleTelemetryReceived(rawJson);
+                    MedHelicopterTelemetryPayload helPayload = mapper.readValue(rawJson, MedHelicopterTelemetryPayload.class);
+                    helTwin.getPhysicalAdapter().onMedHelicopterTelemetryReceived(helPayload);
                     break;
+                default:
+                    System.err.println("[VehicleMqttIngestionAdapter] Unsupported vehicle mapping segment: " + vehicleType);
             }
         } catch (Exception e) {
-            System.err.println("[VehicleMqttIngestionAdapter] Errore nel routing verso l'adapter fisico per: " + vehicleType);
+            System.err.println("[VehicleMqttIngestionAdapter] Failed to route simulation event payload to twin structure: " + e.getMessage());
         }
     }
 

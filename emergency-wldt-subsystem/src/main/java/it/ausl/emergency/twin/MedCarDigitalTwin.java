@@ -26,8 +26,9 @@ public class MedCarDigitalTwin extends DigitalTwin {
         super(digitalTwinId, shadowingFunction);
         this.id                = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
-        this.physicalAdapter   = new MedCarPhysicalAdapter(id, new MedCarAdapterConfiguration());
-        this.digitalAdapter    = new MedCarDigitalAdapter(id,  new MedCarAdapterConfiguration());
+        MedCarAdapterConfiguration mac = new MedCarAdapterConfiguration();
+        this.physicalAdapter   = new MedCarPhysicalAdapter(id, mac);
+        this.digitalAdapter    = new MedCarDigitalAdapter(id, mac);
 
         try {
             this.addPhysicalAdapter(physicalAdapter);

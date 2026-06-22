@@ -26,8 +26,9 @@ public class AmbulanceDigitalTwin extends DigitalTwin {
         super(digitalTwinId, shadowingFunction);
         this.id = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
-        this.physicalAdapter = new AmbulancePhysicalAdapter(id, new AmbulanceAdapterConfiguration());
-        this.digitalAdapter = new AmbulanceDigitalAdapter(id, new AmbulanceAdapterConfiguration());
+        AmbulanceAdapterConfiguration aad = new AmbulanceAdapterConfiguration();
+        this.physicalAdapter = new AmbulancePhysicalAdapter(id, aad);
+        this.digitalAdapter = new AmbulanceDigitalAdapter(id, aad);
 
         try {
             this.addPhysicalAdapter(physicalAdapter);

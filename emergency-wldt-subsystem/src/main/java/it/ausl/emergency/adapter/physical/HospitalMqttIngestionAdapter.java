@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class HospitalMqttIngestionAdapter implements MqttCallback {
 
     private static final String TOPIC_REGISTRY = "ces/registry/hospital";
-    private static final String TOPIC_STATE_WILDCARD = "ces/hospital/+/state";
+    private static final String TOPIC_STATE_WILDCARD = "ces/hospital/+";
     private static final int QOS = 1;
 
     private final String brokerUrl;

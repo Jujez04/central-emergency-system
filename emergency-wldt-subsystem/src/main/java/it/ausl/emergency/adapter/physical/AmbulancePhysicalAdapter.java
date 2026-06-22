@@ -134,9 +134,11 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                                         AmbulanceKeywords.LONGITUDE_PROPERTY_KEY, payload.lon()));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                                        AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY, payload.patientId()));
+                                        AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY, 
+                                        payload.patientId() != null ? payload.patientId() : "null"));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                                        AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY, payload.hospitalId()));
+                                        AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY, 
+                                        payload.hospitalId() != null ? payload.hospitalId() : "null"));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                                         AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY, payload.fuelLevel()));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(

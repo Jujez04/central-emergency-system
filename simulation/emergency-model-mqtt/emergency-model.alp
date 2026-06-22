@@ -8157,11 +8157,10 @@ sendStatus();]]></Action>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
-					<Body><![CDATA[String topic = "ces/hospital/" + agentId + "/state";
+					<Body><![CDATA[String topic = "ces/hospital/" + agentId;
 String payload = "{"
-    + "\"assistanceLevel\":" + assistanceLevel + "\","
-    + "\"patientAssisted\":" + patientAssisted + ","
-    + "\"timestamp\":" + time()
+    + "\"assistanceLevel\":" + assistanceLevel + ",\"patientAssisted\":" + patientAssisted
+    + ",\"timestamp\":" + time()
     + "}";
 main.sendMqttMessage(topic, payload);]]></Body>
 				</Function>

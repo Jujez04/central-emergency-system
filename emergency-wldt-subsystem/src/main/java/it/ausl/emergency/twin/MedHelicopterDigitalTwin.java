@@ -40,10 +40,11 @@ public class MedHelicopterDigitalTwin extends DigitalTwin {
         super(digitalTwinId, shadowingFunction);
         this.id                = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
+        MedHelicopterAdapterConfiguration mhc = new MedHelicopterAdapterConfiguration();
         this.physicalAdapter   = new MedHelicopterPhysicalAdapter(
-                                        id, new MedHelicopterAdapterConfiguration());
+                                        id, mhc);
         this.digitalAdapter    = new MedHelicopterDigitalAdapter(
-                                        id, new MedHelicopterAdapterConfiguration());
+                                        id, mhc);
 
         try {
             this.addPhysicalAdapter(physicalAdapter);

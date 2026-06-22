@@ -6,7 +6,6 @@ public record AmbulanceTelemetryPayload(
         double lon,
         String patientId,
         String hospitalId,
-        String homeBaseId,
         double fuelLevel,
         int missionsSinceMaintenance,
         boolean needsRefueling,
