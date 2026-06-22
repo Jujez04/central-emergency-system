@@ -1,7 +1,5 @@
 package it.ausl.emergency.shadowing;
 
-import java.util.Map;
-
 import it.ausl.emergency.utils.AmbulanceKeywords;
 import it.wldt.adapter.digital.event.DigitalActionWldtEvent;
 import it.wldt.adapter.physical.PhysicalAssetDescription;
@@ -16,26 +14,18 @@ import it.wldt.core.state.DigitalTwinStateEventNotification;
 import it.wldt.core.state.DigitalTwinStateManager;
 import it.wldt.core.state.DigitalTwinStateProperty;
 
+import java.util.Map;
+
 /**
- * Shadowing Function dell'Ambulanza.
- *
- * Traduce lo stato dell'agente Ambulanza della simulazione AnyLogic
- * (ricevuto tramite AmbulancePhysicalAdapter) nello stato del Digital Twin.
- *
- * Le proprietà operative rispecchiano 1:1 i campi di AmbulanceTelemetryPayload.
- * I Domain Events rispecchiano le transizioni operative significative identificate
- * nell'analisi DDD (missione assegnata, paziente preso in carico, handover, ecc.).
- *
- * La Shadowing Function è stateless rispetto alla logica di dominio: il rilevamento
- * dei fronti di transizione è già gestito dall'AmbulancePhysicalAdapter.
+ * Ambulance Shadowing Function.
+ * Orchestrates the data translation loop for fleet vehicle assets and exposes
+ * optimization execution action targets back to the physical simulation layout.
  */
 public class AmbulanceShadowingFunction extends ShadowingFunction {
 
     public AmbulanceShadowingFunction(String id) {
         super(id);
     }
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     @Override
     protected void onCreate() {
@@ -52,51 +42,46 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
         System.out.println("[AmbulanceShadowingFunction] -> onStop()");
     }
 
-    // ── Binding ───────────────────────────────────────────────────────────────
+    // ── Bound Initialization ─────────────────────────────────────────────────
 
     @Override
-    protected void onDigitalTwinBound(
-            Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
+    protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
         try {
-            System.out.println("[AmbulanceShadowingFunction] -> onDigitalTwinBound()");
-
+            System.out.println("[AmbulanceShadowingFunction] -> Binding twin state core metrics...");
             this.digitalTwinStateManager.startStateTransaction();
 
             adaptersPhysicalAssetDescriptionMap.values().forEach(pad -> {
 
-                // Creazione e osservazione proprietà operative
+                // Construct properties dynamically supporting different types (String, Double,
+                // Integer, Boolean)
                 pad.getProperties().forEach(property -> {
                     try {
                         createDigitalTwinStateProperty(property);
                         this.observePhysicalAssetProperty(property);
-                        System.out.println("[AmbulanceShadowingFunction] -> Property Created & Observed: "
-                                + property.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
 
-                // Registrazione e osservazione Domain Events
+                // Register warning event identifiers
                 pad.getEvents().forEach(event -> {
                     try {
-                        DigitalTwinStateEvent dtStateEvent =
-                                new DigitalTwinStateEvent(event.getKey(), event.getType());
+                        DigitalTwinStateEvent dtStateEvent = new DigitalTwinStateEvent(event.getKey(), event.getType());
                         this.digitalTwinStateManager.registerEvent(dtStateEvent);
                         this.observePhysicalAssetEvent(event);
-                        System.out.println("[AmbulanceShadowingFunction] -> Event Registered & Observed: "
-                                + event.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
 
-                // Nessuna azione fisica prevista — blocco lasciato per estendibilità
+                // Enable optimization actuation endpoints (Vehicle Redirection action contract)
                 pad.getActions().forEach(action -> {
                     try {
-                        it.wldt.core.state.DigitalTwinStateAction dtStateAction =
-                                new it.wldt.core.state.DigitalTwinStateAction(
-                                        action.getKey(), action.getType(), action.getContentType());
+                        it.wldt.core.state.DigitalTwinStateAction dtStateAction = new it.wldt.core.state.DigitalTwinStateAction(
+                                action.getKey(), action.getType(), action.getContentType());
                         this.digitalTwinStateManager.enableAction(dtStateAction);
+                        System.out
+                                .println("[AmbulanceShadowingFunction] -> Actuation Loop Enabled: " + action.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -104,6 +89,8 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
             });
 
             this.digitalTwinStateManager.commitStateTransaction();
+
+            // Start listening to inbound actions triggered from the digital adapters layer
             observeDigitalActionEvents();
             notifyShadowingSync();
 
@@ -114,124 +101,107 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onDigitalTwinUnBound(Map<String, PhysicalAssetDescription> map, String reason) {
-        System.out.println("[AmbulanceShadowingFunction] -> onDigitalTwinUnBound(): " + reason);
     }
 
     @Override
-    protected void onPhysicalAdapterBidingUpdate(String adapterId,
-            PhysicalAssetDescription physicalAssetDescription) {
-        // PAD dell'ambulanza è statica: non gestito
+    protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {
     }
 
-    // ── Property Variation ────────────────────────────────────────────────────
+    // ── Inbound Telemetry Callbacks ─────────────────────────────────────────
 
     @Override
-    protected void onPhysicalAssetPropertyVariation(
-            PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
+    protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
         try {
             this.digitalTwinStateManager.startStateTransaction();
             updateDigitalTwinStateProperty(
                     physicalAssetPropertyWldtEvent.getPhysicalPropertyId(),
                     physicalAssetPropertyWldtEvent.getBody());
             this.digitalTwinStateManager.commitStateTransaction();
-
-            System.out.println("[AmbulanceShadowingFunction] -> Property updated: "
-                    + physicalAssetPropertyWldtEvent.getPhysicalPropertyId());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // ── Event Notification ────────────────────────────────────────────────────
-
     @Override
-    protected void onPhysicalAssetEventNotification(
-            PhysicalAssetEventWldtEvent<?> physicalAssetEventWldtEvent) {
+    protected void onPhysicalAssetEventNotification(PhysicalAssetEventWldtEvent<?> physicalAssetEventWldtEvent) {
         try {
-            System.out.println("[AmbulanceShadowingFunction] -> Domain Event received: "
-                    + physicalAssetEventWldtEvent.getPhysicalEventKey());
-
-            this.digitalTwinStateManager.notifyDigitalTwinStateEvent(
-                    new DigitalTwinStateEventNotification<>(
-                            physicalAssetEventWldtEvent.getPhysicalEventKey(),
-                            physicalAssetEventWldtEvent.getBody(),
-                            physicalAssetEventWldtEvent.getCreationTimestamp()));
+            this.digitalTwinStateManager.notifyDigitalTwinStateEvent(new DigitalTwinStateEventNotification<>(
+                    physicalAssetEventWldtEvent.getPhysicalEventKey(),
+                    physicalAssetEventWldtEvent.getBody(),
+                    physicalAssetEventWldtEvent.getCreationTimestamp()));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // ── Relationships (non usate) ─────────────────────────────────────────────
+    // ── Closed-Loop Control Actuation Callback ──────────────────────────────
 
-    @Override
-    protected void onPhysicalAssetRelationshipEstablished(
-            PhysicalAssetRelationshipInstanceCreatedWldtEvent<?> event) {}
-
-    @Override
-    protected void onPhysicalAssetRelationshipDeleted(
-            PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> event) {}
-
-    // ── Digital Actions (non usate) ───────────────────────────────────────────
-
+    /**
+     * Catches digital actions (e.g., routing optimization decisions) from the
+     * digital layer,
+     * validates the contract, and forwards them directly down to the physical loop
+     * via the adapter.
+     */
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> digitalActionWldtEvent) {
-        System.out.println("[AmbulanceShadowingFunction] -> Azione digitale non supportata: "
-                + (digitalActionWldtEvent != null ? digitalActionWldtEvent.getActionKey() : "null"));
+        if (digitalActionWldtEvent == null)
+            return;
+
+        String actionKey = digitalActionWldtEvent.getActionKey();
+        System.out.println("[AmbulanceShadowingFunction] -> Intercepted Digital Command: " + actionKey);
+
+        if (AmbulanceKeywords.REDIRECT_VEHICLE_ACTION_KEY.equals(actionKey)) {
+            try {
+                // Publish the action down to the Physical Adapter layer for execution mapping
+                this.publishPhysicalAssetActionWldtEvent(actionKey, digitalActionWldtEvent.getBody());
+                System.out.println(
+                        "[AmbulanceShadowingFunction] -> Command successfully published to Physical Adapter loop.");
+            } catch (Exception e) {
+                System.err.println("[AmbulanceShadowingFunction] Actuation delivery failure: " + e.getMessage());
+            }
+        }
     }
 
-    // ── Getter per i test ─────────────────────────────────────────────────────
+    @Override
+    protected void onPhysicalAssetRelationshipEstablished(PhysicalAssetRelationshipInstanceCreatedWldtEvent<?> e) {
+    }
+
+    @Override
+    protected void onPhysicalAssetRelationshipDeleted(PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> e) {
+    }
+
+    // ── Structural Helper Methods ───────────────────────────────────────────
+
+    private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
+        Object val = property.getInitialValue();
+        if (val instanceof Double) {
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Double) val));
+        } else if (val instanceof Integer) {
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Integer) val));
+        } else if (val instanceof Boolean) {
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Boolean) val));
+        } else if (val instanceof String) {
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (String) val));
+        }
+    }
+
+    private void updateDigitalTwinStateProperty(String key, Object val) throws Exception {
+        if (val instanceof Double) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (Double) val));
+        } else if (val instanceof Integer) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (Integer) val));
+        } else if (val instanceof Boolean) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (Boolean) val));
+        } else if (val instanceof String) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (String) val));
+        }
+    }
 
     public DigitalTwinStateManager getDigitalTwinStateManager() {
         return this.digitalTwinStateManager;
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * Crea la DigitalTwinStateProperty con il tipo corretto in base al valore
-     * iniziale dichiarato nella PAD. Le proprietà dell'ambulanza includono
-     * String, Double, Integer e Boolean.
-     */
-    private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
-        Object v = property.getInitialValue();
-        if (v instanceof Double) {
-            this.digitalTwinStateManager.createProperty(
-                    new DigitalTwinStateProperty<>(property.getKey(), (Double) v));
-        } else if (v instanceof Integer) {
-            this.digitalTwinStateManager.createProperty(
-                    new DigitalTwinStateProperty<>(property.getKey(), (Integer) v));
-        } else if (v instanceof Boolean) {
-            this.digitalTwinStateManager.createProperty(
-                    new DigitalTwinStateProperty<>(property.getKey(), (Boolean) v));
-        } else if (v instanceof String) {
-            this.digitalTwinStateManager.createProperty(
-                    new DigitalTwinStateProperty<>(property.getKey(), (String) v));
-        } else {
-            throw new IllegalArgumentException(
-                    "[AmbulanceShadowingFunction] Tipo non supportato per: " + property.getKey());
-        }
-    }
-
-    /**
-     * Aggiorna la DigitalTwinStateProperty con il tipo corretto,
-     * simmetrico a {@link #createDigitalTwinStateProperty}.
-     */
-    private void updateDigitalTwinStateProperty(String propertyKey, Object value) throws Exception {
-        if (value instanceof Double) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(propertyKey, (Double) value));
-        } else if (value instanceof Integer) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(propertyKey, (Integer) value));
-        } else if (value instanceof Boolean) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(propertyKey, (Boolean) value));
-        } else if (value instanceof String) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(propertyKey, (String) value));
-        } else {
-            throw new IllegalArgumentException(
-                    "[AmbulanceShadowingFunction] Tipo non supportato per update: " + propertyKey);
-        }
     }
 }

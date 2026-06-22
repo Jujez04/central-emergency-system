@@ -1,206 +1,181 @@
 package it.ausl.emergency.adapter.physical;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.ausl.emergency.adapter.configuration.AmbulanceAdapterConfiguration;
 import it.ausl.emergency.model.payload.AmbulanceTelemetryPayload;
 import it.ausl.emergency.utils.AmbulanceKeywords;
-import it.wldt.adapter.physical.PhysicalAdapter;
+import it.wldt.adapter.physical.ConfigurablePhysicalAdapter;
 import it.wldt.adapter.physical.PhysicalAssetDescription;
 import it.wldt.adapter.physical.PhysicalAssetEvent;
 import it.wldt.adapter.physical.PhysicalAssetProperty;
+import it.wldt.adapter.physical.PhysicalAssetAction;
 import it.wldt.adapter.physical.event.PhysicalAssetActionWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetEventWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetPropertyWldtEvent;
 import it.wldt.exception.EventBusException;
 
 /**
- * Physical Adapter dell'Ambulanza.
- *
- * A differenza del paziente, le ambulanze esistono dall'avvio della simulazione
- * e rimangono attive per tutta la sua durata: la PAD viene pubblicata una volta
- * sola in onAdapterStart() con i valori iniziali di riposo, e i successivi
- * messaggi MQTT aggiornano le proprietà tramite onAmbulanceTelemetryReceived().
- *
- * Domain Events rilevati tramite fronti di transizione:
- *   MISSION_ASSIGNED     → atRest → MovingToPatient
- *   PATIENT_ONBOARD      → TakingPatient → Supporting | MovingToHospital
- *   HOSPITAL_HANDOVER    → qualsiasi → Handover
- *   REFUELING_NEEDED     → needsRefueling false → true
- *   MAINTENANCE_NEEDED   → needsMaintenance false → true
+ * Ambulance Configurable Physical Adapter.
+ * Ingests external real-time multi-variable fleet payloads and exposes
+ * the vehicle destination rerouting action loop back to the simulation.
  */
-public class AmbulancePhysicalAdapter extends PhysicalAdapter {
+public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<AmbulanceAdapterConfiguration> {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private AmbulanceTelemetryPayload lastTelemetry = null;
+        private final ObjectMapper objectMapper = new ObjectMapper();
+        private AmbulanceTelemetryPayload lastTelemetry = null;
 
-    public AmbulancePhysicalAdapter(String id) {
-        super(id);
-    }
-
-    @Override
-    public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
-        System.out.println("[AmbulancePhysicalAdapter] -> Azione non supportata: "
-                + (physicalActionEvent != null ? physicalActionEvent.getActionKey() : "null"));
-    }
-
-    @Override
-    public void onAdapterStart() {
-        try {
-            System.out.println("[AmbulancePhysicalAdapter] -> Pubblicazione PAD...");
-            notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
-        } catch (Exception e) {
-            e.printStackTrace();
+        public AmbulancePhysicalAdapter(String id, AmbulanceAdapterConfiguration configuration) {
+                super(id, configuration);
         }
-    }
 
-    @Override
-    public void onAdapterStop() {
-        System.out.println("[AmbulancePhysicalAdapter] -> Adapter fermato.");
-    }
-
-    // ── PAD ───────────────────────────────────────────────────────────────────
-
-    private PhysicalAssetDescription buildPhysicalAssetDescription() {
-        PhysicalAssetDescription pad = new PhysicalAssetDescription();
-
-        // Proprietà operative — valori iniziali allineati allo stato atRest
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.STATE_PROPERTY_KEY,
-                AmbulanceKeywords.STATE_AT_REST));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.LATITUDE_PROPERTY_KEY,
-                0.0));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.LONGITUDE_PROPERTY_KEY,
-                0.0));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY,
-                AmbulanceKeywords.NULL_REFERENCE));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY,
-                AmbulanceKeywords.NULL_REFERENCE));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.HOME_BASE_ID_PROPERTY_KEY,
-                AmbulanceKeywords.NULL_REFERENCE));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY,
-                1.0));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.MISSIONS_SINCE_MAINTENANCE_PROPERTY_KEY,
-                0));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.NEEDS_REFUELING_PROPERTY_KEY,
-                false));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.NEEDS_MAINTENANCE_PROPERTY_KEY,
-                false));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.TIMESTAMP_PROPERTY_KEY,
-                0.0));
-        pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.TRIP_DISTANCE_PROPERTY_KEY,
-                0.0));
-
-        // Domain Events
-        pad.getEvents().add(new PhysicalAssetEvent(AmbulanceKeywords.MISSION_ASSIGNED_EVENT_KEY,   "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(AmbulanceKeywords.PATIENT_ONBOARD_EVENT_KEY,    "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(AmbulanceKeywords.HOSPITAL_HANDOVER_EVENT_KEY,  "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(AmbulanceKeywords.REFUELING_NEEDED_EVENT_KEY,   "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(AmbulanceKeywords.MAINTENANCE_NEEDED_EVENT_KEY, "application/json"));
-
-        return pad;
-    }
-
-    // ── Ingestion ─────────────────────────────────────────────────────────────
-
-    /**
-     * Entry point per la telemetria già deserializzata.
-     * Chiamato da AmbulanceMqttIngestionAdapter (o direttamente nei test).
-     */
-    public void onAmbulanceTelemetryReceived(AmbulanceTelemetryPayload payload) {
-        if (payload == null) return;
-
-        try {
-            // ── Aggiornamento proprietà ──────────────────────────────────────
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.STATE_PROPERTY_KEY, payload.state()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.LATITUDE_PROPERTY_KEY, payload.lat()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.LONGITUDE_PROPERTY_KEY, payload.lon()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY,
-                    payload.patientId() != null ? payload.patientId() : AmbulanceKeywords.NULL_REFERENCE));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY,
-                    payload.hospitalId() != null ? payload.hospitalId() : AmbulanceKeywords.NULL_REFERENCE));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.HOME_BASE_ID_PROPERTY_KEY,
-                    payload.homeBaseId() != null ? payload.homeBaseId() : AmbulanceKeywords.NULL_REFERENCE));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY, payload.fuelLevel()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.MISSIONS_SINCE_MAINTENANCE_PROPERTY_KEY, payload.missionsSinceMaintenance()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.NEEDS_REFUELING_PROPERTY_KEY, payload.needsRefueling()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.NEEDS_MAINTENANCE_PROPERTY_KEY, payload.needsMaintenance()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.TIMESTAMP_PROPERTY_KEY, payload.timestamp()));
-            publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                    AmbulanceKeywords.TRIP_DISTANCE_PROPERTY_KEY, payload.tripDistanceSinceEmergency()));
-
-            // ── Domain Event 1 — MISSION_ASSIGNED: atRest → MovingToPatient ──
-            boolean isNowMovingToPatient = AmbulanceKeywords.STATE_MOVING_TO_PATIENT
-                    .equalsIgnoreCase(payload.state());
-            boolean wasAtRest = lastTelemetry == null
-                    || AmbulanceKeywords.STATE_AT_REST.equalsIgnoreCase(lastTelemetry.state())
-                    || AmbulanceKeywords.STATE_RETURNING.equalsIgnoreCase(lastTelemetry.state());
-            if (isNowMovingToPatient && wasAtRest) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        AmbulanceKeywords.MISSION_ASSIGNED_EVENT_KEY, payload));
-            }
-
-            // ── Domain Event 2 — PATIENT_ONBOARD: TakingPatient → Supporting/MovingToHospital ──
-            boolean wasBeingTaken = lastTelemetry != null
-                    && AmbulanceKeywords.STATE_TAKING_PATIENT.equalsIgnoreCase(lastTelemetry.state());
-            boolean isNowTransporting =
-                    AmbulanceKeywords.STATE_SUPPORTING.equalsIgnoreCase(payload.state())
-                    || AmbulanceKeywords.STATE_MOVING_TO_HOSPITAL.equalsIgnoreCase(payload.state());
-            if (wasBeingTaken && isNowTransporting) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        AmbulanceKeywords.PATIENT_ONBOARD_EVENT_KEY, payload));
-            }
-
-            // ── Domain Event 3 — HOSPITAL_HANDOVER: → Handover ──────────────
-            boolean isNowHandover = AmbulanceKeywords.STATE_HANDOVER.equalsIgnoreCase(payload.state());
-            boolean wasHandover   = lastTelemetry != null
-                    && AmbulanceKeywords.STATE_HANDOVER.equalsIgnoreCase(lastTelemetry.state());
-            if (isNowHandover && !wasHandover) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        AmbulanceKeywords.HOSPITAL_HANDOVER_EVENT_KEY, payload));
-            }
-
-            // ── Domain Event 4 — REFUELING_NEEDED: fronte false→true ─────────
-            if (payload.needsRefueling()
-                    && (lastTelemetry == null || !lastTelemetry.needsRefueling())) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        AmbulanceKeywords.REFUELING_NEEDED_EVENT_KEY, payload));
-            }
-
-            // ── Domain Event 5 — MAINTENANCE_NEEDED: fronte false→true ───────
-            if (payload.needsMaintenance()
-                    && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        AmbulanceKeywords.MAINTENANCE_NEEDED_EVENT_KEY, payload));
-            }
-
-            lastTelemetry = payload;
-
-        } catch (EventBusException e) {
-            System.err.println("[AmbulancePhysicalAdapter] Event Bus error: " + e.getMessage());
+        @Override
+        public void onAdapterStart() {
+                try {
+                        System.out.println(
+                                        "[AmbulancePhysicalAdapter] -> Initializing vehicle instance loop with parameters: "
+                                                        + getConfiguration());
+                        notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
+                } catch (Exception e) {
+                        e.printStackTrace();
+                }
         }
-    }
 
-    /**
-     * Entry point per la telemetria grezza in formato JSON (usato nei test
-     * e dall'ingestion adapter MQTT).
-     */
-    public void onAmbulanceJsonTelemetryReceived(String jsonPayload) {
-        try {
-            AmbulanceTelemetryPayload payload = objectMapper.readValue(
-                    jsonPayload, AmbulanceTelemetryPayload.class);
-            onAmbulanceTelemetryReceived(payload);
-        } catch (Exception e) {
-            System.err.println("[AmbulancePhysicalAdapter] Errore deserializzazione JSON: "
-                    + e.getMessage());
+        @Override
+        public void onAdapterStop() {
+                System.out.println(
+                                "[AmbulancePhysicalAdapter] -> Physical vehicle fleet ingestion pipeline terminated.");
         }
-    }
+
+        private PhysicalAssetDescription buildPhysicalAssetDescription() {
+                PhysicalAssetDescription pad = new PhysicalAssetDescription();
+
+                // 1. Map Configuration Properties to Physical Asset Description (PAD)
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.STATE_PROPERTY_KEY,
+                                getConfiguration().getDefaultState()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.LATITUDE_PROPERTY_KEY,
+                                getConfiguration().getDefaultLatitude()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.LONGITUDE_PROPERTY_KEY,
+                                getConfiguration().getDefaultLongitude()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY,
+                                getConfiguration().getDefaultPatientId()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY,
+                                getConfiguration().getDefaultHospitalId()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY,
+                                getConfiguration().getDefaultFuelLevel()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.MISSIONS_PROPERTY_KEY,
+                                getConfiguration().getDefaultMissionsSinceMaintenance()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.NEEDS_REFUELING_PROPERTY_KEY,
+                                getConfiguration().isDefaultNeedsRefueling()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.NEEDS_MAINTENANCE_PROPERTY_KEY,
+                                getConfiguration().isDefaultNeedsMaintenance()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.TIMESTAMP_PROPERTY_KEY,
+                                getConfiguration().getDefaultTimestamp()));
+                pad.getProperties().add(new PhysicalAssetProperty<>(AmbulanceKeywords.TRIP_DISTANCE_PROPERTY_KEY,
+                                getConfiguration().getDefaultTripDistanceSinceEmergency()));
+
+                // 2. Register Structural Domain Warnings
+                pad.getEvents().add(
+                                new PhysicalAssetEvent(AmbulanceKeywords.CRITICAL_FUEL_EVENT_KEY, "application/json"));
+                pad.getEvents().add(new PhysicalAssetEvent(AmbulanceKeywords.MAINTENANCE_REQUIRED_EVENT_KEY,
+                                "application/json"));
+
+                // 3. Register Closed-Loop Optimization Action Contract
+                pad.getActions().add(new PhysicalAssetAction(
+                                AmbulanceKeywords.REDIRECT_VEHICLE_ACTION_KEY,
+                                "application/json",
+                                "java.lang.String"));
+
+                return pad;
+        }
+
+        /**
+         * Actuation Command Center Endpoint.
+         * Triggered by the Operational Core to override the vehicle destination
+         * hospital.
+         */
+        @Override
+        public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
+                if (physicalActionEvent == null)
+                        return;
+
+                String actionKey = physicalActionEvent.getActionKey();
+                System.out.println("[AmbulancePhysicalAdapter] -> Incoming control loop command detected on key: "
+                                + actionKey);
+
+                if (AmbulanceKeywords.REDIRECT_VEHICLE_ACTION_KEY.equals(actionKey)) {
+                        String targetHospitalId = (String) physicalActionEvent.getBody();
+                        System.out.println(
+                                        "[AmbulancePhysicalAdapter] -> COMMAND RECEIVED: Rerouting vehicle fleet destination to: "
+                                                        + targetHospitalId);
+
+                        // Here you will hook your external MQTT publisher thread back to AnyLogic:
+                        // String topic = "ces/ambulance/" + this.getId() + "/action/redirect";
+                        // String payload = "{\"targetHospitalId\":\"" + targetHospitalId + "\"}";
+                        // mqttClient.sendMqttMessage(topic, payload);
+                }
+        }
+
+        public void onAmbulanceJsonTelemetryReceived(String jsonPayload) {
+                try {
+                        AmbulanceTelemetryPayload payload = objectMapper.readValue(jsonPayload,
+                                        AmbulanceTelemetryPayload.class);
+                        this.onAmbulanceTelemetryReceived(payload);
+                } catch (Exception e) {
+                        System.err.println("[AmbulancePhysicalAdapter] JSON contract matching structure error: "
+                                        + e.getMessage());
+                }
+        }
+
+        public void onAmbulanceTelemetryReceived(AmbulanceTelemetryPayload payload) {
+                if (payload == null)
+                        return;
+
+                try {
+                        // Forward variables onto the core transactional engine
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.STATE_PROPERTY_KEY, payload.state()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.LATITUDE_PROPERTY_KEY, payload.lat()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.LONGITUDE_PROPERTY_KEY, payload.lon()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY, payload.patientId()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY, payload.hospitalId()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY, payload.fuelLevel()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.MISSIONS_PROPERTY_KEY, payload.missionsSinceMaintenance()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.NEEDS_REFUELING_PROPERTY_KEY, payload.needsRefueling()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.NEEDS_MAINTENANCE_PROPERTY_KEY, payload.needsMaintenance()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.TIMESTAMP_PROPERTY_KEY, payload.timestamp()));
+                        publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
+                                        AmbulanceKeywords.TRIP_DISTANCE_PROPERTY_KEY,
+                                        payload.tripDistanceSinceEmergency()));
+
+                        // Domain Event 1: Critical Fuel Level Notification Edge
+                        if (payload.fuelLevel() < 0.20
+                                        && (lastTelemetry == null || lastTelemetry.fuelLevel() >= 0.20)) {
+                                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
+                                                AmbulanceKeywords.CRITICAL_FUEL_EVENT_KEY, payload));
+                        }
+
+                        // Domain Event 2: Maintenance Requested Flag Edge
+                        if (payload.needsMaintenance()
+                                        && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
+                                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
+                                                AmbulanceKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, payload));
+                        }
+
+                        lastTelemetry = payload;
+
+                } catch (EventBusException e) {
+                        System.err.println(
+                                        "[AmbulancePhysicalAdapter] Processing error on structural event bus context: "
+                                                        + e.getMessage());
+                }
+        }
 }

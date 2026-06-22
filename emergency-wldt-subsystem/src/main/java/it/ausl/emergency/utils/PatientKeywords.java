@@ -26,9 +26,9 @@ public class PatientKeywords {
     public static final String TIME_CALLED_PROPERTY_KEY = "patient-time-called-property-key";
 
     // ── Event Keys (Domain Events DDD) ────────────────────────────────────────
-    public static final String CLINICAL_ASSESSMENT_EVENT_KEY = "riscontro-clinico-eseguito-event-key";
-    public static final String CLINICAL_DETERIORATION_EVENT_KEY = "deterioramento-clinico-rilevato-event-key";
-    public static final String HANDOVER_COMPLETED_EVENT_KEY = "handover-completato-event-key";
+    public static final String CLINICAL_ASSESSMENT_EVENT_KEY = "clinical-assessment-event-key";
+    public static final String CLINICAL_DETERIORATION_EVENT_KEY = "clinical-deterioration-event-key";
+    public static final String HANDOVER_COMPLETED_EVENT_KEY = "handover-completed-event-key";
 
     // ── Valori degli stati dello statechart AnyLogic ──────────────────────────
     public static final String STATE_SIGNALED = "Signaled";

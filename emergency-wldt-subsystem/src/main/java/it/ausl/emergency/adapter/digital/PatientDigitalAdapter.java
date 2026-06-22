@@ -1,4 +1,4 @@
-package it.ausl.emergency.adapter.digital.patient;
+package it.ausl.emergency.adapter.digital;
 
 import it.ausl.emergency.adapter.configuration.PatientAdapterConfiguration;
 import it.ausl.emergency.model.payload.PatientTelemetryPayload;
