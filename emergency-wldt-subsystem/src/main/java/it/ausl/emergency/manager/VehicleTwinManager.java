@@ -19,8 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VehicleTwinManager {
 
     private final DigitalTwinEngine engine;
-    
-    // Registro polimorfico thread-safe per memorizzare tutti i veicoli attivi nella simulazione
+
     private final ConcurrentHashMap<String, DigitalTwin> registry = new ConcurrentHashMap<>();
 
     public VehicleTwinManager(DigitalTwinEngine engine) {
@@ -32,12 +31,10 @@ public class VehicleTwinManager {
      */
     public synchronized void onVehicleCreated(String type, String agentId) {
         if (registry.containsKey(agentId)) {
-            System.out.println("[VehicleTwinManager] Veicolo già registrato nel sistema core: " + agentId);
             return;
         }
 
         try {
-            System.out.println("[VehicleTwinManager] Rilevato accoppiamento flotta di tipo [" + type + "] ID: " + agentId);
             DigitalTwin twin;
 
             switch (type.toLowerCase()) {
@@ -54,20 +51,16 @@ public class VehicleTwinManager {
                     twin = new MedHelicopterDigitalTwin("dt-" + agentId, hsf);
                     break;
                 default:
-                    System.err.println("[VehicleTwinManager] Tipo veicolo sconosciuto: " + type);
+                    System.err.println("VehicleTwinManager unsupported vehicle: " + type);
                     return;
             }
 
-            // Registrazione ed avvio nel motore WLDT
             engine.addDigitalTwin(twin);
             engine.startDigitalTwin("dt-" + agentId);
-            
-            // Inserimento nel registro locale
             registry.put(agentId, twin);
-            System.out.println("[VehicleTwinManager] Digital Twin avviato e registrato con successo per: " + agentId);
 
         } catch (Exception e) {
-            System.err.println("[VehicleTwinManager] Errore critico durante l'istanziazione del veicolo " + agentId);
+            System.err.println("VehicleTwinManager error in creation of vehicle: " + agentId);
             e.printStackTrace();
         }
     }

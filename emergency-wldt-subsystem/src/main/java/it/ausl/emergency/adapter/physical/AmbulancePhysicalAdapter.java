@@ -31,9 +31,6 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
         @Override
         public void onAdapterStart() {
                 try {
-                        System.out.println(
-                                        "[AmbulancePhysicalAdapter] -> Initializing vehicle instance loop with parameters: "
-                                                        + getConfiguration());
                         notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
                 } catch (Exception e) {
                         e.printStackTrace();
@@ -42,8 +39,6 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
 
         @Override
         public void onAdapterStop() {
-                System.out.println(
-                                "[AmbulancePhysicalAdapter] -> Physical vehicle fleet ingestion pipeline terminated.");
         }
 
         private PhysicalAssetDescription buildPhysicalAssetDescription() {
@@ -99,14 +94,10 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
                         return;
 
                 String actionKey = physicalActionEvent.getActionKey();
-                System.out.println("[AmbulancePhysicalAdapter] -> Incoming control loop command detected on key: "
-                                + actionKey);
 
                 if (AmbulanceKeywords.REDIRECT_VEHICLE_ACTION_KEY.equals(actionKey)) {
                         String targetHospitalId = (String) physicalActionEvent.getBody();
-                        System.out.println(
-                                        "[AmbulancePhysicalAdapter] -> COMMAND RECEIVED: Rerouting vehicle fleet destination to: "
-                                                        + targetHospitalId);
+                        // ....
                 }
         }
 
@@ -134,10 +125,10 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                                         AmbulanceKeywords.LONGITUDE_PROPERTY_KEY, payload.lon()));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                                        AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY, 
+                                        AmbulanceKeywords.PATIENT_ID_PROPERTY_KEY,
                                         payload.patientId() != null ? payload.patientId() : "null"));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                                        AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY, 
+                                        AmbulanceKeywords.HOSPITAL_ID_PROPERTY_KEY,
                                         payload.hospitalId() != null ? payload.hospitalId() : "null"));
                         publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                                         AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY, payload.fuelLevel()));

@@ -26,8 +26,7 @@ public class HospitalDigitalTwin extends DigitalTwin {
         super(digitalTwinId, shadowingFunction);
         this.id = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
-        
-        // Configurazione condivisa passata alle istanze degli adapter interni
+
         HospitalAdapterConfiguration sharedConfig = new HospitalAdapterConfiguration();
         this.physicalAdapter = new HospitalPhysicalAdapter(id, sharedConfig);
         this.digitalAdapter = new HospitalDigitalAdapter(id, sharedConfig);
@@ -36,7 +35,6 @@ public class HospitalDigitalTwin extends DigitalTwin {
             this.addPhysicalAdapter(physicalAdapter);
             this.addDigitalAdapter(digitalAdapter);
         } catch (WldtConfigurationException | WldtWorkerException e) {
-            System.err.println("[HospitalDigitalTwin] Errore durante la registrazione degli adapter strutturali: " + e.getMessage());
             e.printStackTrace();
         }
     }

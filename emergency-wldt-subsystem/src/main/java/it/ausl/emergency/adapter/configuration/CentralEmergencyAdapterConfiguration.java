@@ -1,11 +1,11 @@
 package it.ausl.emergency.adapter.configuration;
 
-public class CentraleOperativaAdapterConfiguration {
+public class CentralEmergencyAdapterConfiguration {
 
     private String initialStatus = "OPERATIONAL";
     private int defaultActiveMissions = 0;
 
-    public CentraleOperativaAdapterConfiguration() {}
+    public CentralEmergencyAdapterConfiguration() {}
 
     public String getInitialStatus() {
         return initialStatus;

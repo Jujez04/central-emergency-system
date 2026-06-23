@@ -25,30 +25,24 @@ public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfigur
 
     @Override
     public void onAdapterStart() {
-        System.out.println("[PatientDigitalAdapter] -> Digital Adapter Lifecycle Started: " + getId());
     }
 
     @Override
     public void onAdapterStop() {
-        System.out.println("[PatientDigitalAdapter] -> Digital Adapter Lifecycle Stopped: " + getId());
     }
 
     // ── Digital Twin Engine Lifecycle Callbacks ──────────────────────────────
 
     @Override
     public void onDigitalTwinCreate() {
-        System.out.println("[PatientDigitalAdapter] -> Instance created in engine context.");
     }
 
     @Override
     public void onDigitalTwinStart() {
-        System.out.println("[PatientDigitalAdapter] -> Instance processing thread active.");
     }
 
     @Override
     public void onDigitalTwinSync(DigitalTwinState currentDigitalTwinState) {
-        System.out.println("[PatientDigitalAdapter] -> Core state synchronized. Initializing event subscription pipeline...");
-        printStateSnapshot("INITIAL SYNCHRONIZED DT STATE", currentDigitalTwinState);
 
         // Dynamically extract registered event keys and subscribe via the event bus
         try {
@@ -59,7 +53,6 @@ public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfigur
                     .ifPresent(keys -> {
                         try {
                             observeDigitalTwinEventsNotifications(keys);
-                            System.out.println("[PatientDigitalAdapter] -> Actively observing domain event keys: " + keys);
                         } catch (EventBusException e) {
                             e.printStackTrace();
                         }
@@ -71,17 +64,14 @@ public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfigur
 
     @Override
     public void onDigitalTwinUnSync(DigitalTwinState currentDigitalTwinState) {
-        System.out.println("[PatientDigitalAdapter] -> Core state desynchronized.");
     }
 
     @Override
     public void onDigitalTwinStop() {
-        System.out.println("[PatientDigitalAdapter] -> Instance processing thread halted.");
     }
 
     @Override
     public void onDigitalTwinDestroy() {
-        System.out.println("[PatientDigitalAdapter] -> Instance purged from engine context.");
     }
 
     // ── Transactional State Monitoring Update Callbacks ──────────────────────
@@ -90,20 +80,6 @@ public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfigur
     protected void onStateUpdate(DigitalTwinState newState,
                                  DigitalTwinState previousState,
                                  ArrayList<DigitalTwinStateChange> changes) {
-
-        System.out.println("\n[PatientDigitalAdapter] ─── CORE STATE TRANSACTION UPDATE ───");
-
-        if (changes != null && !changes.isEmpty()) {
-            changes.forEach(change -> System.out.printf("  [%s] %s -> %s%n",
-                    change.getOperation(),
-                    change.getResourceType(),
-                    change.getResource()));
-        } else {
-            System.out.println("  (No direct state variations captured in this transaction context)");
-        }
-
-        printClinicalStateSummary(newState);
-        System.out.println("──────────────────────────────────────────────────────────────\n");
     }
 
     // ── Domain Event Notification Processing Callbacks ───────────────────────
@@ -115,27 +91,18 @@ public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfigur
         String eventKey = notification.getDigitalEventKey();
         Object body = notification.getBody();
 
-        System.out.println("\n[PatientDigitalAdapter] ═══ ASYNCHRONOUS DOMAIN EVENT INBOUND ═══");
-        System.out.println("  Target Event Key : " + eventKey);
-        System.out.println("  Core Timestamp   : " + notification.getTimestamp());
-
-        if (PatientKeywords.CLINICAL_ASSESSMENT_EVENT_KEY.equals(eventKey)) {
-            System.out.println("  ► SUCCESS: CLINICAL ASSESSMENT PERFORMED BY PURSUING SQUAD");
-            printPayloadBodySummary(body);
-
-        } else if (PatientKeywords.CLINICAL_DETERIORATION_EVENT_KEY.equals(eventKey)) {
-            System.out.println("  ► WARNING: ASYNCHRONOUS CLINICAL DETERIORATION DETECTED IN TRANSIT ⚠");
-            printPayloadBodySummary(body);
-
-        } else if (PatientKeywords.HANDOVER_COMPLETED_EVENT_KEY.equals(eventKey)) {
-            System.out.println("  ► SUCCESS: HOSPITAL HANDOVER COMPLETED AT TARGET HUB UNIT ✓");
-            printPayloadBodySummary(body);
-
-        } else {
-            System.out.println("  (Unmanaged or experimental external notification key: " + eventKey + ")");
+        switch (eventKey) {
+            case PatientKeywords.CLINICAL_ASSESSMENT_EVENT_KEY:
+                break;
+            case PatientKeywords.CLINICAL_DETERIORATION_EVENT_KEY:
+                break;
+            case PatientKeywords.HANDOVER_COMPLETED_EVENT_KEY:
+                break;
+            default:
+                System.out.println("  (Unmanaged or experimental external notification key: " + eventKey + ")");
+                break;
         }
 
-        System.out.println("=================================================================\n");
     }
 
     // ── Infrastructure Diagnostic Helpers ────────────────────────────────────

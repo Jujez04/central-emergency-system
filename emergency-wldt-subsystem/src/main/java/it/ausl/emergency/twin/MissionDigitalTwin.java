@@ -31,8 +31,6 @@ public class MissionDigitalTwin extends DigitalTwin {
         super(digitalTwinId, shadowingFunction);
         this.id = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
-
-        // Configurazione atomica dei parametri iniziali della mappa descrittiva (PAD)
         MissionAdapterConfiguration sharedConfig = new MissionAdapterConfiguration();
         this.physicalAdapter = new MissionPhysicalAdapter(id, sharedConfig);
         this.digitalAdapter = new MissionDigitalAdapter(id, sharedConfig);
@@ -41,7 +39,6 @@ public class MissionDigitalTwin extends DigitalTwin {
             this.addPhysicalAdapter(physicalAdapter);
             this.addDigitalAdapter(digitalAdapter);
         } catch (WldtConfigurationException | WldtWorkerException e) {
-            System.err.println("[MissionDigitalTwin] Critical architecture error adding workers for: " + id);
             e.printStackTrace();
         }
     }

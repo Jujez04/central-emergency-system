@@ -29,45 +29,36 @@ public class HospitalShadowingFunction extends ShadowingFunction {
         super(id);
     }
 
-    // ── Lifecycle Callbacks ──────────────────────────────────────────────────
+    // Lifecycle Callbacks
 
     @Override
     protected void onCreate() {
-        System.out.println("[HospitalShadowingFunction] -> onCreate()");
     }
 
     @Override
     protected void onStart() {
-        System.out.println("[HospitalShadowingFunction] -> onStart()");
     }
 
     @Override
     protected void onStop() {
-        System.out.println("[HospitalShadowingFunction] -> onStop()");
     }
 
-    // ── Bound Lifecycle State Management Callbacks ───────────────────────────
+    // Bound Lifecycle State Management Callbacks
 
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
         try {
-            System.out.println("[HospitalShadowingFunction] -> Binding twin state hospital metrics...");
             this.digitalTwinStateManager.startStateTransaction();
 
             adaptersPhysicalAssetDescriptionMap.values().forEach(pad -> {
-
-                // Costruzione dinamica delle proprietà core (gestisce correttamente Integer e Double)
                 pad.getProperties().forEach(property -> {
                     try {
                         createDigitalTwinStateProperty(property);
                         this.observePhysicalAssetProperty(property);
-                        System.out.println("[HospitalShadowingFunction] -> Property created & observed: " + property.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
-
-                // Registrazione degli eventi (lasciato per estendibilità futura se la PAD introducesse allarmi)
                 pad.getEvents().forEach(event -> {
                     try {
                         DigitalTwinStateEvent dtStateEvent = new DigitalTwinStateEvent(event.getKey(), event.getType());
@@ -77,8 +68,6 @@ public class HospitalShadowingFunction extends ShadowingFunction {
                         e.printStackTrace();
                     }
                 });
-
-                // Registrazione delle azioni (lasciato per estendibilità futura)
                 pad.getActions().forEach(action -> {
                     try {
                         it.wldt.core.state.DigitalTwinStateAction dtStateAction = new it.wldt.core.state.DigitalTwinStateAction(
@@ -91,28 +80,24 @@ public class HospitalShadowingFunction extends ShadowingFunction {
             });
 
             this.digitalTwinStateManager.commitStateTransaction();
-
-            // Attivazione dell'ascolto dei canali digitali e sincronizzazione completata
             observeDigitalActionEvents();
             notifyShadowingSync();
 
         } catch (Exception e) {
-            System.err.println("[HospitalShadowingFunction] Error during onDigitalTwinBound: " + e.getMessage());
+            System.err.println("HospitalShadowingFunction error during onDigitalTwinBound: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     @Override
     protected void onDigitalTwinUnBound(Map<String, PhysicalAssetDescription> map, String reason) {
-        System.out.println("[HospitalShadowingFunction] -> onDigitalTwinUnBound(): " + reason);
     }
 
     @Override
     protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {
-        // PAD statica per tutta la durata della simulazione
     }
 
-    // ── Inbound Telemetry Callbacks ─────────────────────────────────────────
+    // Inbound Telemetry Callbacks
 
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
@@ -123,7 +108,7 @@ public class HospitalShadowingFunction extends ShadowingFunction {
                     physicalAssetPropertyWldtEvent.getBody());
             this.digitalTwinStateManager.commitStateTransaction();
         } catch (Exception e) {
-            System.err.println("[HospitalShadowingFunction] Property variation processing error: " + e.getMessage());
+            System.err.println("HospitalShadowingFunction property variation processing error: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -142,21 +127,17 @@ public class HospitalShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onPhysicalAssetRelationshipEstablished(PhysicalAssetRelationshipInstanceCreatedWldtEvent<?> e) {
-        // Nessuna relazione dichiarata per l'ospedale
     }
 
     @Override
     protected void onPhysicalAssetRelationshipDeleted(PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> e) {
-        // Nessuna relazione dichiarata per l'ospedale
     }
 
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> digitalActionWldtEvent) {
-        System.out.println("[HospitalShadowingFunction] -> Unsupported digital action received: "
-                + (digitalActionWldtEvent != null ? digitalActionWldtEvent.getActionKey() : "null"));
     }
 
-    // ── Structural Helper Methods ───────────────────────────────────────────
+    // Structural Helper Methods
 
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();

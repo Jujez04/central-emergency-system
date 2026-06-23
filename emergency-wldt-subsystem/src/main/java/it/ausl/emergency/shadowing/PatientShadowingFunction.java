@@ -35,51 +35,29 @@ public class PatientShadowingFunction extends ShadowingFunction {
         super(id);
     }
 
-    //// Shadowing Function Management Callbacks ////
-
     @Override
     protected void onCreate() {
-        System.out.println("[PatientShadowingFunction] -> onCreate()");
     }
 
     @Override
     protected void onStart() {
-        System.out.println("[PatientShadowingFunction] -> onStart()");
     }
 
     @Override
     protected void onStop() {
-        System.out.println("[PatientShadowingFunction] -> onStop()");
     }
 
     //// Bound LifeCycle State Management Callbacks ////
 
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
-
         try {
-
-            System.out.println(
-                    "[PatientShadowingFunction] -> onDigitalTwinBound(): " + adaptersPhysicalAssetDescriptionMap);
-
             this.digitalTwinStateManager.startStateTransaction();
-
             adaptersPhysicalAssetDescriptionMap.values().forEach(pad -> {
-
-                // Le proprietà del Paziente non sono tutte dello stesso tipo (String, int,
-                // boolean,
-                // double): si crea quindi la DigitalTwinStateProperty corretta in base al tipo
-                // effettivo del valore iniziale dichiarato nella PAD.
                 pad.getProperties().forEach(property -> {
                     try {
-
                         createDigitalTwinStateProperty(property);
                         this.observePhysicalAssetProperty(property);
-
-                        System.out.println(
-                                "[PatientShadowingFunction] -> onDigitalTwinBound() -> Property Created & Observed: "
-                                        + property.getKey());
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -91,30 +69,17 @@ public class PatientShadowingFunction extends ShadowingFunction {
                         DigitalTwinStateEvent dtStateEvent = new DigitalTwinStateEvent(event.getKey(), event.getType());
                         this.digitalTwinStateManager.registerEvent(dtStateEvent);
                         this.observePhysicalAssetEvent(event);
-
-                        System.out.println(
-                                "[PatientShadowingFunction] -> onDigitalTwinBound() -> Event Created & Observed: "
-                                        + event.getKey());
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
 
-                // Nessuna azione fisica è attualmente dichiarata nella PAD del Paziente: il
-                // blocco è
-                // lasciato per coerenza/estendibilità futura (es. richiesta manuale di
-                // refresh).
                 pad.getActions().forEach(action -> {
                     try {
 
                         it.wldt.core.state.DigitalTwinStateAction dtStateAction = new it.wldt.core.state.DigitalTwinStateAction(
                                 action.getKey(), action.getType(), action.getContentType());
                         this.digitalTwinStateManager.enableAction(dtStateAction);
-
-                        System.out.println("[PatientShadowingFunction] -> onDigitalTwinBound() -> Action Enabled: "
-                                + action.getKey());
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -135,15 +100,10 @@ public class PatientShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onDigitalTwinUnBound(Map<String, PhysicalAssetDescription> map, String detachReason) {
-        System.out.println("[PatientShadowingFunction] -> onDigitalTwinUnBound(): " + detachReason);
     }
 
     @Override
     protected void onPhysicalAdapterBidingUpdate(String adapterId, PhysicalAssetDescription physicalAssetDescription) {
-        // Non gestito: la PAD del Paziente è statica per tutta la missione (le
-        // proprietà non
-        // cambiano "forma", cambiano solo i valori tramite
-        // onPhysicalAssetPropertyVariation).
     }
 
     //// Physical Property Variation Callback ////
@@ -152,11 +112,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
 
         try {
-
-            System.out.println(
-                    "[PatientShadowingFunction] -> onPhysicalAssetPropertyVariation() -> Variation on Property: "
-                            + physicalAssetPropertyWldtEvent.getPhysicalPropertyId());
-
             this.digitalTwinStateManager.startStateTransaction();
 
             updateDigitalTwinStateProperty(
@@ -164,11 +119,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
                     physicalAssetPropertyWldtEvent.getBody());
 
             this.digitalTwinStateManager.commitStateTransaction();
-
-            System.out.println(
-                    "[PatientShadowingFunction] -> onPhysicalAssetPropertyVariation() -> DT State UPDATE Property: "
-                            + physicalAssetPropertyWldtEvent.getPhysicalPropertyId());
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -179,11 +129,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     @Override
     protected void onPhysicalAssetEventNotification(PhysicalAssetEventWldtEvent<?> physicalAssetEventWldtEvent) {
         try {
-
-            System.out.println(
-                    "[PatientShadowingFunction] -> onPhysicalAssetEventNotification() -> Notification for Event: "
-                            + physicalAssetEventWldtEvent.getPhysicalEventKey());
-
             this.digitalTwinStateManager.notifyDigitalTwinStateEvent(new DigitalTwinStateEventNotification<>(
                     physicalAssetEventWldtEvent.getPhysicalEventKey(),
                     physicalAssetEventWldtEvent.getBody(),
@@ -193,13 +138,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
             e.printStackTrace();
         }
     }
-
-    //// Physical Relationships Notification Callbacks ////
-    // Il Paziente non dichiara relazioni nella propria PAD (a differenza, ad es.,
-    //// del Veicolo di
-    // Soccorso che potrebbe dichiarare una relazione "trasporta" verso il
-    //// Paziente): i metodi sono
-    // lasciati come no-op per coerenza con il contratto della ShadowingFunction.
 
     @Override
     protected void onPhysicalAssetRelationshipEstablished(
@@ -211,15 +149,8 @@ public class PatientShadowingFunction extends ShadowingFunction {
             PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> physicalAssetRelationshipInstanceDeletedWldtEvent) {
     }
 
-    //// Digital Action Received Callback ////
-
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> digitalActionWldtEvent) {
-        // Nessuna azione fisica è attualmente abilitata sul Paziente: si logga per
-        // individuare
-        // facilmente eventuali richieste non previste provenienti dai Digital Adapter.
-        System.out.println("[PatientShadowingFunction] -> onDigitalActionEvent() -> Unsupported Digital Action: "
-                + (digitalActionWldtEvent != null ? digitalActionWldtEvent.getActionKey() : "null"));
     }
 
     //// Helper Methods ////
@@ -248,7 +179,7 @@ public class PatientShadowingFunction extends ShadowingFunction {
                     .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (String) initialValue));
         } else {
             throw new IllegalArgumentException(
-                    "[PatientShadowingFunction] -> Unsupported property type for key: " + property.getKey());
+                    "PatientShadowingFunction Unsupported property type for key: " + property.getKey());
         }
     }
 
@@ -269,7 +200,7 @@ public class PatientShadowingFunction extends ShadowingFunction {
             this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(propertyKey, (String) value));
         } else {
             throw new IllegalArgumentException(
-                    "[PatientShadowingFunction] -> Unsupported value type for property key: " + propertyKey);
+                    "PatientShadowingFunction Unsupported value type for property key: " + propertyKey);
         }
     }
 

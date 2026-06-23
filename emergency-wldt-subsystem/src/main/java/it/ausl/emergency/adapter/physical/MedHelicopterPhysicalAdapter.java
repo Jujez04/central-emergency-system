@@ -13,28 +13,11 @@ import it.wldt.adapter.physical.event.PhysicalAssetEventWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetPropertyWldtEvent;
 import it.wldt.exception.EventBusException;
 
-/**
- * Physical Adapter del MedHelicopter.
- *
- * Riceve i payload MQTT pubblicati su "ces/medhelicopter/{agentId}/state",
- * aggiorna le proprietà del DT e pubblica i Domain Events rilevando
- * fronti di salita/discesa rispetto alla telemetria precedente.
- *
- * Domain Events:
- *  1. MISSION_ASSIGNED    — atRest → MovingToPatient
- *  2. PATIENT_ONBOARD     — TakingPatient → MovingToHospital
- *  3. HOSPITAL_HANDOVER   — * → Handover
- *  4. CRITICAL_FUEL       — fuelLevel scende sotto 0.20 (fronte di discesa)
- *  5. MAINTENANCE_REQUIRED — fronte di salita su needsMaintenance
- *
- * Nessuna azione: il MedHelicopter non riceve comandi di redirect.
- */
 public class MedHelicopterPhysicalAdapter
         extends ConfigurablePhysicalAdapter<MedHelicopterAdapterConfiguration> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /** Ultima telemetria ricevuta — serve per rilevare i fronti di stato. */
     private MedHelicopterTelemetryPayload lastTelemetry = null;
 
     public MedHelicopterPhysicalAdapter(String id, MedHelicopterAdapterConfiguration configuration) {
@@ -46,7 +29,6 @@ public class MedHelicopterPhysicalAdapter
     @Override
     public void onAdapterStart() {
         try {
-            System.out.println("[MedHelicopterPhysicalAdapter] -> Initializing PAD for MedHelicopter: " + getId());
             notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,7 +37,6 @@ public class MedHelicopterPhysicalAdapter
 
     @Override
     public void onAdapterStop() {
-        System.out.println("[MedHelicopterPhysicalAdapter] -> Adapter stopped: " + getId());
     }
 
     // ── PAD Builder ───────────────────────────────────────────────────────────
@@ -176,7 +157,7 @@ public class MedHelicopterPhysicalAdapter
                     MedHelicopterKeywords.TRIP_DISTANCE_PROPERTY_KEY,
                     payload.tripDistanceSinceEmergency()));
 
-            // ── 2. Domain Events (rilevazione fronti) ─────────────────────────
+            // Domain Events
 
             String prevState = lastTelemetry != null ? lastTelemetry.state() : null;
             String currState = payload.state();
@@ -186,7 +167,6 @@ public class MedHelicopterPhysicalAdapter
                     && !MedHelicopterKeywords.STATE_MOVING_TO_PATIENT.equals(prevState)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedHelicopterKeywords.MISSION_ASSIGNED_EVENT_KEY, payload));
-                System.out.println("[MedHelicopterPhysicalAdapter] -> EVENT: MISSION_ASSIGNED");
             }
 
             // Event 2 — Patient Onboard: TakingPatient → MovingToHospital
@@ -194,7 +174,6 @@ public class MedHelicopterPhysicalAdapter
                     && MedHelicopterKeywords.STATE_TAKING_PATIENT.equals(prevState)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedHelicopterKeywords.PATIENT_ONBOARD_EVENT_KEY, payload));
-                System.out.println("[MedHelicopterPhysicalAdapter] -> EVENT: PATIENT_ONBOARD");
             }
 
             // Event 3 — Hospital Handover: * → Handover (fronte di ingresso)
@@ -202,7 +181,6 @@ public class MedHelicopterPhysicalAdapter
                     && !MedHelicopterKeywords.STATE_HANDOVER.equals(prevState)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedHelicopterKeywords.HOSPITAL_HANDOVER_EVENT_KEY, payload));
-                System.out.println("[MedHelicopterPhysicalAdapter] -> EVENT: HOSPITAL_HANDOVER");
             }
 
             // Event 4 — Critical Fuel: fronte di discesa sotto soglia 0.20
@@ -211,7 +189,6 @@ public class MedHelicopterPhysicalAdapter
                         || lastTelemetry.fuelLevel() >= MedHelicopterKeywords.CRITICAL_FUEL_THRESHOLD)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedHelicopterKeywords.CRITICAL_FUEL_EVENT_KEY, payload));
-                System.out.println("[MedHelicopterPhysicalAdapter] -> EVENT: CRITICAL_FUEL");
             }
 
             // Event 5 — Maintenance Required: fronte di salita su needsMaintenance
@@ -219,7 +196,6 @@ public class MedHelicopterPhysicalAdapter
                     && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedHelicopterKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, payload));
-                System.out.println("[MedHelicopterPhysicalAdapter] -> EVENT: MAINTENANCE_REQUIRED");
             }
 
             lastTelemetry = payload;

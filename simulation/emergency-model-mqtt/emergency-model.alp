@@ -255,8 +255,17 @@ try {
             "{\"action\":\"CREATED\",\"type\":\"medhelicopter\",\"id\":\"" + h.agentId + "\"}");
     }
     for (Hospital h : hospitalsCollection) {
-    	sendMqttMessage("ces/registry/hospital", "{\"action\":\"CREATED\",\"type\":hospital\",\"id\":\"" + h.agentId + "\",\"assistanceLevel:\"" + h.assistanceLevel + "\"}");
-    }
+	    sendMqttMessage("ces/registry/hospital", 
+	        "{"
+	        + "\"action\":\"CREATED\","
+	        + "\"type\":\"hospital\","
+	        + "\"id\":\"" + h.agentId + "\","
+	        + "\"assistanceLevel\":" + h.assistanceLevel + ","
+	        + "\"lat\":" + h.getLatitude() + ","
+	        + "\"lon\":" + h.getLongitude()
+	        + "}"
+	    );
+	}
 } catch(Exception e) {
 	traceln("MQTT client connection error: " + e.getMessage());
 }

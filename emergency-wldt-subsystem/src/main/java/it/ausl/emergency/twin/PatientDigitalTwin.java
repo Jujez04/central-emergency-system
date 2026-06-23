@@ -7,7 +7,6 @@ import it.ausl.emergency.shadowing.PatientShadowingFunction;
 import it.wldt.core.engine.DigitalTwin;
 import it.wldt.exception.EventBusException;
 import it.wldt.exception.ModelException;
-import it.wldt.exception.WldtConfigurationException;
 import it.wldt.exception.WldtDigitalTwinStateException;
 import it.wldt.exception.WldtRuntimeException;
 import it.wldt.exception.WldtWorkerException;
@@ -31,9 +30,7 @@ public class PatientDigitalTwin extends DigitalTwin {
         try {
             this.addPhysicalAdapter(physicalAdapter);
             this.addDigitalAdapter(digitalAdapter);
-        } catch (WldtConfigurationException e) {
-            e.printStackTrace();
-        } catch (WldtWorkerException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

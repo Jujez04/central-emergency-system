@@ -14,21 +14,21 @@ import it.wldt.exception.WldtWorkerException;
 
 public class MedCarDigitalTwin extends DigitalTwin {
 
-    private final String                  id;
-    private final MedCarPhysicalAdapter   physicalAdapter;
-    private final MedCarDigitalAdapter    digitalAdapter;
+    private final String id;
+    private final MedCarPhysicalAdapter physicalAdapter;
+    private final MedCarDigitalAdapter digitalAdapter;
     private final MedCarShadowingFunction shadowingFunction;
 
     public MedCarDigitalTwin(String digitalTwinId, MedCarShadowingFunction shadowingFunction)
             throws ModelException, EventBusException, WldtRuntimeException,
-                   WldtWorkerException, WldtDigitalTwinStateException {
+            WldtWorkerException, WldtDigitalTwinStateException {
 
         super(digitalTwinId, shadowingFunction);
-        this.id                = digitalTwinId;
+        this.id = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
         MedCarAdapterConfiguration mac = new MedCarAdapterConfiguration();
-        this.physicalAdapter   = new MedCarPhysicalAdapter(id, mac);
-        this.digitalAdapter    = new MedCarDigitalAdapter(id, mac);
+        this.physicalAdapter = new MedCarPhysicalAdapter(id, mac);
+        this.digitalAdapter = new MedCarDigitalAdapter(id, mac);
 
         try {
             this.addPhysicalAdapter(physicalAdapter);
@@ -38,7 +38,15 @@ public class MedCarDigitalTwin extends DigitalTwin {
         }
     }
 
-    public MedCarPhysicalAdapter   getPhysicalAdapter()   { return physicalAdapter; }
-    public MedCarDigitalAdapter    getDigitalAdapter()    { return digitalAdapter; }
-    public MedCarShadowingFunction getShadowingFunction() { return shadowingFunction; }
+    public MedCarPhysicalAdapter getPhysicalAdapter() {
+        return physicalAdapter;
+    }
+
+    public MedCarDigitalAdapter getDigitalAdapter() {
+        return digitalAdapter;
+    }
+
+    public MedCarShadowingFunction getShadowingFunction() {
+        return shadowingFunction;
+    }
 }

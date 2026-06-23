@@ -1,6 +1,6 @@
 package it.ausl.emergency.twin;
 
-import it.ausl.emergency.adapter.configuration.CentraleOperativaAdapterConfiguration;
+import it.ausl.emergency.adapter.configuration.CentralEmergencyAdapterConfiguration;
 import it.ausl.emergency.adapter.digital.CentralEmergencyDigitalAdapter;
 import it.ausl.emergency.adapter.physical.CentralEmergencyPhysicalAdapter;
 import it.ausl.emergency.shadowing.CentralEmergencyShadowingFunction;
@@ -19,7 +19,7 @@ public class CentralEmergencyDigitalTwin extends DigitalTwin {
         super(digitalTwinId, shadowingFunction);
         this.id = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
-        CentraleOperativaAdapterConfiguration sharedConfig = new CentraleOperativaAdapterConfiguration();
+        CentralEmergencyAdapterConfiguration sharedConfig = new CentralEmergencyAdapterConfiguration();
         this.physicalAdapter = new CentralEmergencyPhysicalAdapter(id, sharedConfig);
         this.digitalAdapter = new CentralEmergencyDigitalAdapter(id, sharedConfig);
 

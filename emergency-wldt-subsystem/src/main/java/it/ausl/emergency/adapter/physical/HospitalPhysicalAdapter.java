@@ -14,7 +14,8 @@ import it.wldt.exception.EventBusException;
 /**
  * Hospital Configurable Physical Adapter.
  * Ingests external real-time structural data from simulated clinical points
- * and translates telemetry metrics to the transactional digital core state layers.
+ * and translates telemetry metrics to the transactional digital core state
+ * layers.
  */
 public class HospitalPhysicalAdapter extends ConfigurablePhysicalAdapter<HospitalAdapterConfiguration> {
 
@@ -27,9 +28,6 @@ public class HospitalPhysicalAdapter extends ConfigurablePhysicalAdapter<Hospita
     @Override
     public void onAdapterStart() {
         try {
-            System.out.println(
-                    "[HospitalPhysicalAdapter] -> Initializing structural footprint loop with parameters: "
-                            + getConfiguration());
             notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,7 +36,6 @@ public class HospitalPhysicalAdapter extends ConfigurablePhysicalAdapter<Hospita
 
     @Override
     public void onAdapterStop() {
-        System.out.println("[HospitalPhysicalAdapter] -> Hospital asset ingestion channel closed: " + getId());
     }
 
     private PhysicalAssetDescription buildPhysicalAssetDescription() {
@@ -51,8 +48,6 @@ public class HospitalPhysicalAdapter extends ConfigurablePhysicalAdapter<Hospita
                 getConfiguration().getDefaultPatientAssisted()));
         pad.getProperties().add(new PhysicalAssetProperty<>(HospitalKeywords.TIMESTAMP_PROPERTY_KEY,
                 getConfiguration().getDefaultTimestamp()));
-
-        // Attualmente l'ospedale non espone Domain Events strutturali o azioni di attuazione closed-loop nella PAD
         return pad;
     }
 
@@ -72,25 +67,19 @@ public class HospitalPhysicalAdapter extends ConfigurablePhysicalAdapter<Hospita
         }
 
         try {
-            // Forward primitive variables directly onto the core engine transactional layers
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     HospitalKeywords.ASSISTANCE_LEVEL_PROPERTY_KEY, payload.assistanceLevel()));
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     HospitalKeywords.PATIENT_ASSISTED_PROPERTY_KEY, payload.patientAssisted()));
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     HospitalKeywords.TIMESTAMP_PROPERTY_KEY, payload.timestamp()));
-            
+
         } catch (EventBusException e) {
-            System.err.println(
-                    "[HospitalPhysicalAdapter] Processing failure on framework internal event bus context: "
-                            + e.getMessage());
+            System.err.println("Processing failure on framework internal event bus context: " + e.getMessage());
         }
     }
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
-        // L'ospedale monitora lo stato passivo della flotta ricoverata, non espone endpoint di attuazione
-        System.out.println("[HospitalPhysicalAdapter] -> Notification: No closed-loop actions handled on key: "
-                + (physicalActionEvent != null ? physicalActionEvent.getActionKey() : "null"));
     }
 }

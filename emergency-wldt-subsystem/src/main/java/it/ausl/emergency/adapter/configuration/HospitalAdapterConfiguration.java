@@ -5,6 +5,8 @@ public class HospitalAdapterConfiguration {
     private int defaultAssistanceLevel = 1;
     private int defaultPatientAssisted = 0;
     private double defaultTimestamp = 0.0;
+    private double defaultLatitude = 0.0;
+    private double defaultLongitude = 0.0;
 
     public HospitalAdapterConfiguration() {
     }
@@ -41,10 +43,29 @@ public class HospitalAdapterConfiguration {
         this.defaultTimestamp = v;
     }
 
+    public double getDefaultLatitude() {
+        return defaultLatitude;
+    }
+
+    public void setDefaultLatitude(double defaultLatitude) {
+        this.defaultLatitude = defaultLatitude;
+    }
+
+    public double getDefaultLongitude() {
+        return defaultLongitude;
+    }
+
+    public void setDefaultLongitude(double defaultLongitude) {
+        this.defaultLongitude = defaultLongitude;
+    }
+
     @Override
     public String toString() {
         return "HospitalAdapterConfiguration{assistanceLevel=" + defaultAssistanceLevel
                 + ", patientAssisted=" + defaultPatientAssisted
-                + ", timestamp=" + defaultTimestamp + '}';
+                + ", timestamp=" + defaultTimestamp
+                + ", latitude=" + defaultLatitude
+                + ", longitude=" + defaultLongitude
+                + '}';
     }
 }

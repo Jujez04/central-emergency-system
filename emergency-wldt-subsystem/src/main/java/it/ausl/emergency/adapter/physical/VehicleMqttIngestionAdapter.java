@@ -38,8 +38,6 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
         client.connect(opts);
         client.subscribe(REGISTRY_TOPIC, QOS);
         client.subscribe(VEHICLE_STATE_WILDCARD, QOS);
-
-        System.out.println("[VehicleMqttIngestionAdapter] Ingestion attiva su broker: " + brokerUrl);
     }
 
     public void stop() throws MqttException {
@@ -84,7 +82,7 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[VehicleMqttIngestionAdapter] Errore elaborazione messaggio su topic [" + topic + "]: " + e.getMessage());
+            System.err.println("VehicleMqttIngestionAdapter error: " + e.getMessage());
         }
     }
 
@@ -108,16 +106,16 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
                     helTwin.getPhysicalAdapter().onMedHelicopterTelemetryReceived(helPayload);
                     break;
                 default:
-                    System.err.println("[VehicleMqttIngestionAdapter] Unsupported vehicle mapping segment: " + vehicleType);
+                    System.err.println("VehicleMqttIngestionAdapter unsupported vehicle mapping segment: " + vehicleType);
             }
         } catch (Exception e) {
-            System.err.println("[VehicleMqttIngestionAdapter] Failed to route simulation event payload to twin structure: " + e.getMessage());
+            System.err.println("VehicleMqttIngestionAdapter failed to route simulation event payload to twin structure: " + e.getMessage());
         }
     }
 
     @Override
-    public void connectionLost(Throwable cause) {
-        System.err.println("[VehicleMqttIngestionAdapter] Connessione persa con il broker MQTT: " + cause.getMessage());
+    public void connectionLost(Throwable e) {
+        System.err.println(e.getMessage());
     }
 
     @Override

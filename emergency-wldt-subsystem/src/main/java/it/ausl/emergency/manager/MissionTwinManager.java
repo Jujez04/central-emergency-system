@@ -63,9 +63,6 @@ public class MissionTwinManager {
     // ── Private ───────────────────────────────────────────────────────────────
 
     private MissionDigitalTwin createAndStartTwin(String missionId, MissionTelemetryPayload payload) throws Exception {
-        System.out.println("[MissionTwinManager] Nuova missione rilevata dal flusso: " + missionId
-                + " [Paziente associato: " + payload.patientId() + "] — creo MissionDigitalTwin...");
-
         MissionShadowingFunction sf = new MissionShadowingFunction("mission-shadowing-" + missionId);
         MissionDigitalTwin twin = new MissionDigitalTwin("dt-" + missionId, sf);
 
@@ -78,8 +75,6 @@ public class MissionTwinManager {
 
         engine.addDigitalTwin(twin);
         engine.startDigitalTwin("dt-" + missionId);
-
-        System.out.println("[MissionTwinManager] MissionDigitalTwin avviato correttamente per: " + missionId);
         return twin;
     }
 
@@ -92,7 +87,6 @@ public class MissionTwinManager {
             try {
                 Thread.sleep(10_000);
                 registry.remove(missionId);
-                System.out.println("[MissionTwinManager] Twin rimosso dal registry dopo conclusione missione: " + missionId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

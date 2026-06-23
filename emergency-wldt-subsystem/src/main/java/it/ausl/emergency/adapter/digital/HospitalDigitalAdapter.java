@@ -25,19 +25,14 @@ public class HospitalDigitalAdapter extends DigitalAdapter<HospitalAdapterConfig
 
     @Override
     public void onAdapterStart() {
-        System.out.println("[HospitalDigitalAdapter] -> Digital twin outbound exposure layer active for: " + getId());
     }
 
     @Override
     public void onAdapterStop() {
-        System.out.println("[HospitalDigitalAdapter] -> Digital layer terminated: " + getId());
     }
 
     @Override
     public void onDigitalTwinSync(DigitalTwinState digitalTwinState) {
-        System.out.println("[HospitalDigitalAdapter] -> Synchronization achieved. Binding state observers...");
-        System.out.println();
-        System.out.println("[HospitalDigitalAdapter] ── INITIAL SYNCHRONIZED HOSPITAL STATE ──");
 
         try {
             digitalTwinState.getProperty(HospitalKeywords.ASSISTANCE_LEVEL_PROPERTY_KEY)
@@ -46,46 +41,35 @@ public class HospitalDigitalAdapter extends DigitalAdapter<HospitalAdapterConfig
                 .ifPresent(p -> System.out.println("   [PROPERTY] " + HospitalKeywords.PATIENT_ASSISTED_PROPERTY_KEY + "   = " + p.getValue()));
             digitalTwinState.getProperty(HospitalKeywords.TIMESTAMP_PROPERTY_KEY)
                 .ifPresent(p -> System.out.println("   [PROPERTY] " + HospitalKeywords.TIMESTAMP_PROPERTY_KEY + "          = " + p.getValue()));
-        
         } catch (WldtDigitalTwinStatePropertyException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-        System.out.println();
     }
 
     @Override
     public void onDigitalTwinUnSync(DigitalTwinState digitalTwinState) {
-        System.out.println("[HospitalDigitalAdapter] -> Digital twin desynchronized from physical asset: " + getId());
     }
 
     @Override
     public void onDigitalTwinCreate() {
-        // Lifecycle callback del framework: Twin creato nel motore
     }
 
     @Override
     public void onDigitalTwinStart() {
-        // Lifecycle callback del framework: Twin avviato nel motore
     }
 
     @Override
     public void onDigitalTwinStop() {
-        // Lifecycle callback del framework: Twin stoppato
     }
 
     @Override
     public void onDigitalTwinDestroy() {
-        // Lifecycle callback del framework: Twin rimosso e distruttore invocato
     }
 
     @Override
     protected void onStateUpdate(DigitalTwinState newDigitalTwinState, 
                                  DigitalTwinState previousDigitalTwinState, 
                                  ArrayList<DigitalTwinStateChange> digitalTwinStateChangeList) {
-        // Invocato automaticamente ad ogni commit transazionale della Shadowing Function dell'ospedale
-        System.out.println("[HospitalDigitalAdapter] -> Received dynamic state transaction commit update event for: " + getId());
     }
 
     @Override

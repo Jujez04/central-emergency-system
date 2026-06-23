@@ -29,34 +29,28 @@ public class HospitalTwinManager {
     /**
      * Invocato dall'adapter alla ricezione di un comando di CREATED su ces/registry/hospital
      */
-    public synchronized void onHospitalCreated(String agentId, int assistanceLevel) {
+    public synchronized void onHospitalCreated(String agentId, int assistanceLevel, double lat, double lon) {
         registry.computeIfAbsent(agentId, id -> {
             try {
-                System.out.println("[HospitalTwinManager] Rilevato boot ospedale: " + id 
-                        + " [Livello Assistenza Primario: " + assistanceLevel + "] — creo HospitalDigitalTwin...");
-
                 HospitalShadowingFunction sf = new HospitalShadowingFunction("hospital-shadowing-" + id);
                 HospitalDigitalTwin twin = new HospitalDigitalTwin("dt-" + id, sf);
-
-                // Configura il livello di assistenza di default impostandolo nella configurazione dell'adapter
                 twin.getPhysicalAdapter().getConfiguration().setDefaultAssistanceLevel(assistanceLevel);
+                twin.getPhysicalAdapter().getConfiguration().setDefaultLatitude(lat);
+                twin.getPhysicalAdapter().getConfiguration().setDefaultLongitude(lon);
 
                 engine.addDigitalTwin(twin);
                 engine.startDigitalTwin("dt-" + id);
 
-                System.out.println("[HospitalTwinManager] HospitalDigitalTwin avviato con successo per: " + id);
                 return twin;
             } catch (Exception e) {
-                throw new RuntimeException("Creazione core fallita per l'ospedale: " + id, e);
+                throw new RuntimeException("Problem with hospital creation: " + id, e);
             }
         });
     }
 
     public void onTelemetryReceived(String agentId, HospitalTelemetryPayload payload) {
-        // Se l'ospedale non è ancora a registro (fallback di sicurezza), lo istanzia on-the-fly
         HospitalDigitalTwin twin = registry.computeIfAbsent(agentId, id -> {
             try {
-                System.out.println("[HospitalTwinManager] Fallback telemetrico per ospedale non registrato: " + id);
                 HospitalShadowingFunction sf = new HospitalShadowingFunction("hospital-shadowing-" + id);
                 HospitalDigitalTwin t = new HospitalDigitalTwin("dt-" + id, sf);
 
@@ -64,11 +58,9 @@ public class HospitalTwinManager {
                 engine.startDigitalTwin("dt-" + id);
                 return t;
             } catch (Exception e) {
-                throw new RuntimeException("Creazione di fallback fallita per l'ospedale: " + id, e);
+                throw new RuntimeException("Error in telemetry for hospital: " + id, e);
             }
         });
-
-        // Inoltra il payload tipizzato primitivo al rispettivo Configurable Physical Adapter
         twin.getPhysicalAdapter().onHospitalTelemetryReceived(payload);
     }
 

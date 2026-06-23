@@ -29,17 +29,14 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onCreate() {
-        System.out.println("[AmbulanceShadowingFunction] -> onCreate()");
     }
 
     @Override
     protected void onStart() {
-        System.out.println("[AmbulanceShadowingFunction] -> onStart()");
     }
 
     @Override
     protected void onStop() {
-        System.out.println("[AmbulanceShadowingFunction] -> onStop()");
     }
 
     // ── Bound Initialization ─────────────────────────────────────────────────
@@ -47,13 +44,9 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
         try {
-            System.out.println("[AmbulanceShadowingFunction] -> Binding twin state core metrics...");
             this.digitalTwinStateManager.startStateTransaction();
 
             adaptersPhysicalAssetDescriptionMap.values().forEach(pad -> {
-
-                // Construct properties dynamically supporting different types (String, Double,
-                // Integer, Boolean)
                 pad.getProperties().forEach(property -> {
                     try {
                         createDigitalTwinStateProperty(property);
@@ -62,8 +55,6 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
                         e.printStackTrace();
                     }
                 });
-
-                // Register warning event identifiers
                 pad.getEvents().forEach(event -> {
                     try {
                         DigitalTwinStateEvent dtStateEvent = new DigitalTwinStateEvent(event.getKey(), event.getType());
@@ -73,15 +64,11 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
                         e.printStackTrace();
                     }
                 });
-
-                // Enable optimization actuation endpoints (Vehicle Redirection action contract)
                 pad.getActions().forEach(action -> {
                     try {
                         it.wldt.core.state.DigitalTwinStateAction dtStateAction = new it.wldt.core.state.DigitalTwinStateAction(
                                 action.getKey(), action.getType(), action.getContentType());
                         this.digitalTwinStateManager.enableAction(dtStateAction);
-                        System.out
-                                .println("[AmbulanceShadowingFunction] -> Actuation Loop Enabled: " + action.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -106,8 +93,6 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
     @Override
     protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {
     }
-
-    // ── Inbound Telemetry Callbacks ─────────────────────────────────────────
 
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
@@ -134,7 +119,7 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
         }
     }
 
-    // ── Closed-Loop Control Actuation Callback ──────────────────────────────
+    // Closed-Loop Control Actuation Callback
 
     /**
      * Catches digital actions (e.g., routing optimization decisions) from the
@@ -148,16 +133,13 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
             return;
 
         String actionKey = digitalActionWldtEvent.getActionKey();
-        System.out.println("[AmbulanceShadowingFunction] -> Intercepted Digital Command: " + actionKey);
 
         if (AmbulanceKeywords.REDIRECT_VEHICLE_ACTION_KEY.equals(actionKey)) {
             try {
                 // Publish the action down to the Physical Adapter layer for execution mapping
                 this.publishPhysicalAssetActionWldtEvent(actionKey, digitalActionWldtEvent.getBody());
-                System.out.println(
-                        "[AmbulanceShadowingFunction] -> Command successfully published to Physical Adapter loop.");
             } catch (Exception e) {
-                System.err.println("[AmbulanceShadowingFunction] Actuation delivery failure: " + e.getMessage());
+                System.err.println("AmbulanceShadowingFunction actuation delivery failure: " + e.getMessage());
             }
         }
     }

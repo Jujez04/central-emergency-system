@@ -1,6 +1,5 @@
 package it.ausl.emergency.shadowing;
 
-import it.ausl.emergency.utils.MedHelicopterKeywords;
 import it.wldt.adapter.digital.event.DigitalActionWldtEvent;
 import it.wldt.adapter.physical.PhysicalAssetDescription;
 import it.wldt.adapter.physical.PhysicalAssetProperty;
@@ -32,40 +31,32 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
         super(id);
     }
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    // Lifecycle
 
     @Override
     protected void onCreate() {
-        System.out.println("[MedHelicopterShadowingFunction] -> onCreate()");
     }
 
     @Override
     protected void onStart() {
-        System.out.println("[MedHelicopterShadowingFunction] -> onStart()");
     }
 
     @Override
     protected void onStop() {
-        System.out.println("[MedHelicopterShadowingFunction] -> onStop()");
     }
 
-    // ── Binding ───────────────────────────────────────────────────────────────
+    // Binding
 
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersMap) {
         try {
-            System.out.println("[MedHelicopterShadowingFunction] -> onDigitalTwinBound()");
             this.digitalTwinStateManager.startStateTransaction();
 
             adaptersMap.values().forEach(pad -> {
-
-                // Proprietà
                 pad.getProperties().forEach(property -> {
                     try {
                         createDigitalTwinStateProperty(property);
                         this.observePhysicalAssetProperty(property);
-                        System.out.println("[MedHelicopterShadowingFunction] -> Property created & observed: "
-                                + property.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -78,8 +69,6 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
                                 new DigitalTwinStateEvent(event.getKey(), event.getType());
                         this.digitalTwinStateManager.registerEvent(dtEvent);
                         this.observePhysicalAssetEvent(event);
-                        System.out.println("[MedHelicopterShadowingFunction] -> Event registered & observed: "
-                                + event.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -92,8 +81,6 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
                                 new it.wldt.core.state.DigitalTwinStateAction(
                                         action.getKey(), action.getType(), action.getContentType());
                         this.digitalTwinStateManager.enableAction(dtAction);
-                        System.out.println("[MedHelicopterShadowingFunction] -> Action enabled: "
-                                + action.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -111,7 +98,6 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onDigitalTwinUnBound(Map<String, PhysicalAssetDescription> map, String reason) {
-        System.out.println("[MedHelicopterShadowingFunction] -> onDigitalTwinUnBound(): " + reason);
     }
 
     @Override
@@ -119,7 +105,7 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
         // PAD statica per tutta la missione
     }
 
-    // ── Property Variation ────────────────────────────────────────────────────
+    // Property Variation
 
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> event) {
@@ -149,8 +135,6 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
         }
     }
 
-    // ── Relationships (no-op) ─────────────────────────────────────────────────
-
     @Override
     protected void onPhysicalAssetRelationshipEstablished(
             PhysicalAssetRelationshipInstanceCreatedWldtEvent<?> e) {}
@@ -159,15 +143,13 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAssetRelationshipDeleted(
             PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> e) {}
 
-    // ── Digital Action (no-op con log) ────────────────────────────────────────
-
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> event) {
         System.out.println("[MedHelicopterShadowingFunction] -> Unsupported digital action: "
                 + (event != null ? event.getActionKey() : "null"));
     }
 
-    // ── Helper Methods ────────────────────────────────────────────────────────
+    // Helper Methods
 
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();
@@ -185,7 +167,7 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
                     new DigitalTwinStateProperty<>(property.getKey(), (String) val));
         } else {
             throw new IllegalArgumentException(
-                    "[MedHelicopterShadowingFunction] Unsupported property type for key: "
+                    "MedHelicopterShadowingFunction Unsupported property type for key: "
                             + property.getKey());
         }
     }
@@ -205,7 +187,7 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
                     new DigitalTwinStateProperty<>(key, (String) val));
         } else {
             throw new IllegalArgumentException(
-                    "[MedHelicopterShadowingFunction] Unsupported value type for key: " + key);
+                    "MedHelicopterShadowingFunction Unsupported value type for key: " + key);
         }
     }
 }

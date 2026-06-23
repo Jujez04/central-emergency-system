@@ -3,8 +3,8 @@ package it.ausl.emergency.adapter.digital;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import it.ausl.emergency.adapter.configuration.CentraleOperativaAdapterConfiguration;
-import it.ausl.emergency.utils.CentraleOperativaKeywords;
+import it.ausl.emergency.adapter.configuration.CentralEmergencyAdapterConfiguration;
+import it.ausl.emergency.utils.CentralEmergencyKeywords;
 import it.wldt.adapter.digital.DigitalAdapter;
 import it.wldt.core.state.DigitalTwinState;
 import it.wldt.core.state.DigitalTwinStateChange;
@@ -15,12 +15,12 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
-public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentraleOperativaAdapterConfiguration> {
+public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmergencyAdapterConfiguration> {
 
     private HttpServer restServer;
     private static final int PORT = 8080;
 
-    public CentralEmergencyDigitalAdapter(String id, CentraleOperativaAdapterConfiguration configuration) {
+    public CentralEmergencyDigitalAdapter(String id, CentralEmergencyAdapterConfiguration configuration) {
         super(id, configuration);
     }
 
@@ -28,9 +28,8 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentraleOpera
     public void onAdapterStart() {
         try {
             startRestServer();
-            System.out.println("[CentraleOperativaDigitalAdapter] -> REST API Layer attivo sulla porta: " + PORT);
         } catch (Exception e) {
-            System.err.println("Impossibile avviare il server REST: " + e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 
@@ -38,33 +37,36 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentraleOpera
     public void onAdapterStop() {
         if (restServer != null) {
             restServer.stop(0);
-            System.out.println("[CentraleOperativaDigitalAdapter] -> Server REST arrestato.");
         }
     }
 
     @Override
     public void onDigitalTwinSync(DigitalTwinState digitalTwinState) {
-        System.out.println("[CentraleOperativaDigitalAdapter] -> Core state sincronizzato con il layer digitale.");
     }
 
     @Override
-    public void onDigitalTwinUnSync(DigitalTwinState digitalTwinState) {}
+    public void onDigitalTwinUnSync(DigitalTwinState digitalTwinState) {
+    }
 
     @Override
-    public void onDigitalTwinCreate() {}
+    public void onDigitalTwinCreate() {
+    }
 
     @Override
-    public void onDigitalTwinStart() {}
+    public void onDigitalTwinStart() {
+    }
 
     @Override
-    public void onDigitalTwinStop() {}
+    public void onDigitalTwinStop() {
+    }
 
     @Override
-    public void onDigitalTwinDestroy() {}
+    public void onDigitalTwinDestroy() {
+    }
 
     private void startRestServer() throws IOException {
         restServer = HttpServer.create(new InetSocketAddress(PORT), 0);
-        
+
         // Endpoint 1: Triage Telefonico ed invio mezzo
         restServer.createContext("/api/centrale/triage", new HttpHandler() {
             @Override
@@ -73,7 +75,7 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentraleOpera
                     String jsonBody = new String(exchange.getRequestBody().readAllBytes());
                     try {
                         // Pubblica l'azione sul bus di WLDT
-                        publishDigitalActionWldtEvent(CentraleOperativaKeywords.ACTION_TRIAGE, jsonBody);
+                        publishDigitalActionWldtEvent(CentralEmergencyKeywords.ACTION_TRIAGE, jsonBody);
                         sendResponse(exchange, 202, "{\"status\":\"TRIAGE_ACCEPTED\"}");
                     } catch (Exception e) {
                         sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
@@ -91,7 +93,7 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentraleOpera
                 if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
                     String jsonBody = new String(exchange.getRequestBody().readAllBytes());
                     try {
-                        publishDigitalActionWldtEvent(CentraleOperativaKeywords.ACTION_REDIRECT, jsonBody);
+                        publishDigitalActionWldtEvent(CentralEmergencyKeywords.ACTION_REDIRECT, jsonBody);
                         sendResponse(exchange, 200, "{\"status\":\"REDIRECT_COMMAND_FORWARDED\"}");
                     } catch (Exception e) {
                         sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");

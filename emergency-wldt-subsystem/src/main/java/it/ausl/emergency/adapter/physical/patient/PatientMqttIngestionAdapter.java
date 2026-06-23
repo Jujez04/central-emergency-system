@@ -39,9 +39,6 @@ public class PatientMqttIngestionAdapter implements MqttCallback {
 
         client.connect(opts);
         client.subscribe(TOPIC_WILDCARD, QOS);
-
-        System.out.println("[PatientMqttIngestionAdapter] Connected to " + brokerUrl
-                + " — listening on: " + TOPIC_WILDCARD);
     }
 
     public void stop() throws MqttException {
@@ -60,12 +57,11 @@ public class PatientMqttIngestionAdapter implements MqttCallback {
         this.messageArrived(topic, mockMessage);
     }
 
-    // ── MqttCallback Implementation ──────────────────────────────────────────
+    // MqttCallback Implementation
 
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         try {
-            // Contract decomposition: "ces/patient/P-14523/state" -> segments[2] = "P-14523"
             String[] segments = topic.split("/");
             if (segments.length < 4) {
                 System.err.println("[PatientMqttIngestionAdapter] Unexpected topic format: " + topic);
@@ -91,6 +87,6 @@ public class PatientMqttIngestionAdapter implements MqttCallback {
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) { 
-        // Subscriber-only mode: unused
+
     }
 }

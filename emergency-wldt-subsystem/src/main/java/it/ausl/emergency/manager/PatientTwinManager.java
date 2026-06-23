@@ -50,8 +50,7 @@ public class PatientTwinManager {
         if (justCreated.get()) {
             boolean bound = waitForBinding(twin, agentId);
             if (!bound) {
-                System.err.println("[PatientTwinManager] Timeout in attesa del binding per: " + agentId
-                        + " — la telemetria potrebbe non essere applicata correttamente.");
+                System.err.println("Error in patient binding");
             }
         }
 
@@ -73,8 +72,6 @@ public class PatientTwinManager {
     // ── Private ───────────────────────────────────────────────────────────────
 
     private PatientDigitalTwin createAndStartTwin(String agentId) throws Exception {
-        System.out.println("[PatientTwinManager] Nuovo paziente rilevato: " + agentId
-                + " — creo PatientDigitalTwin...");
 
         PatientShadowingFunction sf =
                 new PatientShadowingFunction("patient-shadowing-" + agentId);
@@ -83,8 +80,6 @@ public class PatientTwinManager {
 
         engine.addDigitalTwin(twin);
         engine.startDigitalTwin("dt-" + agentId);
-
-        System.out.println("[PatientTwinManager] PatientDigitalTwin avviato per: " + agentId);
         return twin;
     }
 
@@ -99,8 +94,6 @@ public class PatientTwinManager {
             try {
                 Thread.sleep(10_000);
                 registry.remove(agentId);
-                System.out.println("[PatientTwinManager] Twin rimosso dal registry dopo handover: "
-                        + agentId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

@@ -37,9 +37,6 @@ public class MissionMqttIngestionAdapter implements MqttCallback {
 
         client.connect(opts);
         client.subscribe(TOPIC_WILDCARD, QOS);
-
-        System.out.println("[MissionMqttIngestionAdapter] Connesso a " + brokerUrl
-                + " — In ascolto sul topic flotta missioni: " + TOPIC_WILDCARD);
     }
 
     public void stop() throws MqttException {
@@ -49,41 +46,38 @@ public class MissionMqttIngestionAdapter implements MqttCallback {
         }
     }
 
-    // ── MqttCallback Implementation ──────────────────────────────────────────
+    // MqttCallback Implementation
 
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         try {
-            // Scomposizione del contratto del topic: "ces/mission/M-767193/state" -> segments[2] = "M-767193"
             String[] segments = topic.split("/");
             if (segments.length < 4) {
-                System.err.println("[MissionMqttIngestionAdapter] Formato topic non valido: " + topic);
+                System.err.println("Error in message format: " + topic);
                 return;
             }
 
             String missionId = segments[2];
 
             MissionTelemetryPayload payload = mapper.readValue(
-                    message.getPayload(), 
+                    message.getPayload(),
                     MissionTelemetryPayload.class
             );
 
-            // Delega la scomposizione e l'avvio on-the-fly al manager delle missioni
             twinManager.onTelemetryReceived(missionId, payload);
 
         } catch (Exception e) {
-            System.err.println("[MissionMqttIngestionAdapter] Errore di parsing sul topic " 
+            System.err.println("Parsing error in topic " 
                     + topic + ": " + e.getMessage());
         }
     }
 
     @Override
-    public void connectionLost(Throwable cause) {
-        System.err.println("[MissionMqttIngestionAdapter] Connessione MQTT persa: " + cause.getMessage());
+    public void connectionLost(Throwable e) {
+        System.err.println(e.getMessage());
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        // Solo modalità ricezione: non utilizzato
     }
 }

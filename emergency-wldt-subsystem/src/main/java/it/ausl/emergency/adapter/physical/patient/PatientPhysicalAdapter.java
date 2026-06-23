@@ -25,15 +25,11 @@ public class PatientPhysicalAdapter extends ConfigurablePhysicalAdapter<PatientA
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
-        System.out.println("[PatientPhysicalAdapter] -> Action requests are currently unsupported for target: "
-                + (physicalActionEvent != null ? physicalActionEvent.getActionKey() : "null"));
     }
 
     @Override
     public void onAdapterStart() {
         try {
-            System.out.println("[PatientPhysicalAdapter] -> Starting with configuration: " + getConfiguration());
-            System.out.println("[PatientPhysicalAdapter] -> Publishing Physical Asset Description (PAD)...");
             notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
         } catch (Exception e) {
             e.printStackTrace();
@@ -42,13 +38,11 @@ public class PatientPhysicalAdapter extends ConfigurablePhysicalAdapter<PatientA
 
     @Override
     public void onAdapterStop() {
-        System.out.println("[PatientPhysicalAdapter] -> Physical ingestion pipeline stopped.");
     }
 
     private PhysicalAssetDescription buildPhysicalAssetDescription() {
         PhysicalAssetDescription pad = new PhysicalAssetDescription();
 
-        // Lettura delle proprietà strutturali iniziali dalla configurazione iniettata
         pad.getProperties().add(new PhysicalAssetProperty<>(PatientKeywords.STATE_PROPERTY_KEY, getConfiguration().getDefaultState()));
         pad.getProperties().add(new PhysicalAssetProperty<>(PatientKeywords.SEVERITY_CODE_PROPERTY_KEY, getConfiguration().getDefaultSeverityCode()));
         pad.getProperties().add(new PhysicalAssetProperty<>(PatientKeywords.CONFIRMED_SEVERITY_CODE_PROPERTY_KEY, getConfiguration().getDefaultConfirmedSeverityCode()));
@@ -60,8 +54,6 @@ public class PatientPhysicalAdapter extends ConfigurablePhysicalAdapter<PatientA
         pad.getProperties().add(new PhysicalAssetProperty<>(PatientKeywords.LATITUDE_PROPERTY_KEY, getConfiguration().getDefaultLatitude()));
         pad.getProperties().add(new PhysicalAssetProperty<>(PatientKeywords.LONGITUDE_PROPERTY_KEY, getConfiguration().getDefaultLongitude()));
         pad.getProperties().add(new PhysicalAssetProperty<>(PatientKeywords.TIME_CALLED_PROPERTY_KEY, getConfiguration().getDefaultTimeCalled()));
-
-        // Eventi di Dominio DDD
         pad.getEvents().add(new PhysicalAssetEvent(PatientKeywords.CLINICAL_ASSESSMENT_EVENT_KEY, "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(PatientKeywords.CLINICAL_DETERIORATION_EVENT_KEY, "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(PatientKeywords.HANDOVER_COMPLETED_EVENT_KEY, "application/json"));

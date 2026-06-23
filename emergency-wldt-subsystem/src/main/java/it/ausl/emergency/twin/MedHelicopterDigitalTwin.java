@@ -17,34 +17,35 @@ import it.wldt.exception.WldtWorkerException;
  * nel WLDT engine.
  *
  * Uso tipico (test / main):
+ * 
  * <pre>
- *   MedHelicopterShadowingFunction sf = new MedHelicopterShadowingFunction("heli-sf-" + agentId);
- *   MedHelicopterDigitalTwin dt = new MedHelicopterDigitalTwin("dt-" + agentId, sf);
- *   DigitalTwinEngine engine = new DigitalTwinEngine();
- *   engine.addDigitalTwin(dt);
- *   engine.startAll();
+ * MedHelicopterShadowingFunction sf = new MedHelicopterShadowingFunction("heli-sf-" + agentId);
+ * MedHelicopterDigitalTwin dt = new MedHelicopterDigitalTwin("dt-" + agentId, sf);
+ * DigitalTwinEngine engine = new DigitalTwinEngine();
+ * engine.addDigitalTwin(dt);
+ * engine.startAll();
  * </pre>
  */
 public class MedHelicopterDigitalTwin extends DigitalTwin {
 
-    private final String                        id;
-    private final MedHelicopterPhysicalAdapter  physicalAdapter;
-    private final MedHelicopterDigitalAdapter   digitalAdapter;
+    private final String id;
+    private final MedHelicopterPhysicalAdapter physicalAdapter;
+    private final MedHelicopterDigitalAdapter digitalAdapter;
     private final MedHelicopterShadowingFunction shadowingFunction;
 
     public MedHelicopterDigitalTwin(String digitalTwinId,
-                                    MedHelicopterShadowingFunction shadowingFunction)
+            MedHelicopterShadowingFunction shadowingFunction)
             throws ModelException, EventBusException, WldtRuntimeException,
-                   WldtWorkerException, WldtDigitalTwinStateException {
+            WldtWorkerException, WldtDigitalTwinStateException {
 
         super(digitalTwinId, shadowingFunction);
-        this.id                = digitalTwinId;
+        this.id = digitalTwinId;
         this.shadowingFunction = shadowingFunction;
         MedHelicopterAdapterConfiguration mhc = new MedHelicopterAdapterConfiguration();
-        this.physicalAdapter   = new MedHelicopterPhysicalAdapter(
-                                        id, mhc);
-        this.digitalAdapter    = new MedHelicopterDigitalAdapter(
-                                        id, mhc);
+        this.physicalAdapter = new MedHelicopterPhysicalAdapter(
+                id, mhc);
+        this.digitalAdapter = new MedHelicopterDigitalAdapter(
+                id, mhc);
 
         try {
             this.addPhysicalAdapter(physicalAdapter);
@@ -54,7 +55,15 @@ public class MedHelicopterDigitalTwin extends DigitalTwin {
         }
     }
 
-    public MedHelicopterPhysicalAdapter  getPhysicalAdapter()   { return physicalAdapter; }
-    public MedHelicopterDigitalAdapter   getDigitalAdapter()    { return digitalAdapter; }
-    public MedHelicopterShadowingFunction getShadowingFunction(){ return shadowingFunction; }
+    public MedHelicopterPhysicalAdapter getPhysicalAdapter() {
+        return physicalAdapter;
+    }
+
+    public MedHelicopterDigitalAdapter getDigitalAdapter() {
+        return digitalAdapter;
+    }
+
+    public MedHelicopterShadowingFunction getShadowingFunction() {
+        return shadowingFunction;
+    }
 }

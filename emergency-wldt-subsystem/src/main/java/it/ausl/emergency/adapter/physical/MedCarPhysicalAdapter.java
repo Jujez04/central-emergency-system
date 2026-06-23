@@ -17,7 +17,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Ultima telemetria ricevuta: serve per rilevare i fronti di stato
     private MedCarTelemetryPayload lastTelemetry = null;
 
     public MedCarPhysicalAdapter(String id, MedCarAdapterConfiguration configuration) {
@@ -29,7 +28,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
     @Override
     public void onAdapterStart() {
         try {
-            System.out.println("[MedCarPhysicalAdapter] -> Initializing PAD for MedCar: " + getId());
             notifyPhysicalAdapterBound(buildPhysicalAssetDescription());
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,7 +36,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
 
     @Override
     public void onAdapterStop() {
-        System.out.println("[MedCarPhysicalAdapter] -> Adapter stopped: " + getId());
     }
 
     // ── PAD Builder ───────────────────────────────────────────────────────────
@@ -69,8 +66,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
                 MedCarKeywords.TIMESTAMP_PROPERTY_KEY,        getConfiguration().getDefaultTimestamp()));
         pad.getProperties().add(new PhysicalAssetProperty<>(
                 MedCarKeywords.TRIP_DISTANCE_PROPERTY_KEY,    getConfiguration().getDefaultTripDistanceSinceEmergency()));
-
-        // Domain Events
         pad.getEvents().add(new PhysicalAssetEvent(
                 MedCarKeywords.MISSION_ASSIGNED_EVENT_KEY,     "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(
@@ -81,8 +76,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
                 MedCarKeywords.CRITICAL_FUEL_EVENT_KEY,        "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(
                 MedCarKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, "application/json"));
-
-        // Nessuna azione: la MedCar non riceve comandi di redirect
         return pad;
     }
 
@@ -93,7 +86,7 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
             MedCarTelemetryPayload payload = objectMapper.readValue(jsonPayload, MedCarTelemetryPayload.class);
             onMedCarTelemetryReceived(payload);
         } catch (Exception e) {
-            System.err.println("[MedCarPhysicalAdapter] JSON parsing error: " + e.getMessage());
+            System.err.println("JSON parsing error: " + e.getMessage());
         }
     }
 
@@ -101,7 +94,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
         if (payload == null) return;
 
         try {
-            // ── 1. Aggiornamento delle proprietà ──────────────────────────────
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     MedCarKeywords.STATE_PROPERTY_KEY,            payload.state()));
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
@@ -127,33 +119,27 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     MedCarKeywords.TRIP_DISTANCE_PROPERTY_KEY,    payload.tripDistanceSinceEmergency()));
 
-            // ── 2. Domain Events (fronti di salita/discesa) ───────────────────
-
             String prevState = lastTelemetry != null ? lastTelemetry.state() : null;
             String currState = payload.state();
 
-            // Mission Assigned: atRest → MovingToPatient
             if (MedCarKeywords.STATE_MOVING_TO_PATIENT.equals(currState)
                     && !MedCarKeywords.STATE_MOVING_TO_PATIENT.equals(prevState)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedCarKeywords.MISSION_ASSIGNED_EVENT_KEY, payload));
             }
 
-            // On Scene Treating: MovingToPatient → TreatingPatient
             if (MedCarKeywords.STATE_TREATING_PATIENT.equals(currState)
                     && !MedCarKeywords.STATE_TREATING_PATIENT.equals(prevState)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedCarKeywords.ON_SCENE_TREATING_EVENT_KEY, payload));
             }
 
-            // Mission Completed: TreatingPatient → Returning
             if (MedCarKeywords.STATE_RETURNING.equals(currState)
                     && MedCarKeywords.STATE_TREATING_PATIENT.equals(prevState)) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
                         MedCarKeywords.MISSION_COMPLETED_EVENT_KEY, payload));
             }
 
-            // Critical Fuel: fronte di discesa sotto 0.20
             if (payload.fuelLevel() < MedCarKeywords.CRITICAL_FUEL_THRESHOLD
                     && (lastTelemetry == null
                         || lastTelemetry.fuelLevel() >= MedCarKeywords.CRITICAL_FUEL_THRESHOLD)) {
@@ -161,7 +147,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
                         MedCarKeywords.CRITICAL_FUEL_EVENT_KEY, payload));
             }
 
-            // Maintenance Required: fronte di salita su needsMaintenance
             if (payload.needsMaintenance()
                     && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
@@ -179,8 +164,5 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> event) {
-        // La MedCar non espone azioni: log per debug e nulla più
-        System.out.println("[MedCarPhysicalAdapter] -> Unsupported action received: "
-                + (event != null ? event.getActionKey() : "null"));
     }
 }
