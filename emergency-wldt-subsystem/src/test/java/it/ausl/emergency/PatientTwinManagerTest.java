@@ -1,6 +1,7 @@
 package it.ausl.emergency;
 
 import it.ausl.emergency.adapter.physical.patient.PatientMqttIngestionAdapter;
+import it.ausl.emergency.manager.MissionTwinManager;
 import it.ausl.emergency.manager.PatientTwinManager;
 import it.ausl.emergency.payload.PatientTelemetryPayload;
 import it.ausl.emergency.twin.PatientDigitalTwin;
@@ -44,7 +45,7 @@ public class PatientTwinManagerTest {
     @BeforeEach
     public void setUp() {
         engine = new DigitalTwinEngine();
-        manager = new PatientTwinManager(engine);
+        manager = new PatientTwinManager(engine, new MissionTwinManager(engine));
         // Initializing adapter with localhost broker string (isolated direct injection used in testing)
         ingestionAdapter = new PatientMqttIngestionAdapter("tcp://localhost:1883", manager);
         System.out.println("\n[TEST-SETUP] Processing Engine and Twin Manager successfully initialized.\n");

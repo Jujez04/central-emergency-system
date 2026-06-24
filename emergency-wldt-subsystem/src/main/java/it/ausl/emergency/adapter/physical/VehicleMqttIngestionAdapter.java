@@ -6,6 +6,8 @@ import it.ausl.emergency.manager.VehicleTwinManager;
 import it.ausl.emergency.twin.AmbulanceDigitalTwin;
 import it.ausl.emergency.twin.MedCarDigitalTwin;
 import it.ausl.emergency.twin.MedHelicopterDigitalTwin;
+import it.ausl.emergency.payload.AmbulanceTelemetryPayload;
+import it.ausl.emergency.payload.MedCarTelemetryPayload;
 import it.ausl.emergency.payload.MedHelicopterTelemetryPayload;
 import it.wldt.core.engine.DigitalTwin;
 import org.eclipse.paho.client.mqttv3.*;
@@ -28,7 +30,8 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
     }
 
     public void start() throws MqttException {
-        client = new MqttClient(brokerUrl, "ces-vehicle-ingestion-" + System.currentTimeMillis(), new MemoryPersistence());
+        client = new MqttClient(brokerUrl, "ces-vehicle-ingestion-" + System.currentTimeMillis(),
+                new MemoryPersistence());
         client.setCallback(this);
 
         MqttConnectOptions opts = new MqttConnectOptions();
@@ -66,50 +69,47 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
 
             if (topic.startsWith("ces/") && topic.endsWith("/state")) {
                 String[] segments = topic.split("/");
-                if (segments.length < 4) return;
+                if (segments.length < 4)
+                    return;
 
-                String vehicleType = segments[1]; 
-                String agentId = segments[2];     
+                String vehicleType = segments[1];
+                String agentId = segments[2];
 
                 DigitalTwin twin = twinManager.getVehicleTwin(agentId);
                 if (twin == null) {
                     twinManager.onVehicleCreated(vehicleType, agentId);
-                    twin = twinManager.getVehicleTwin(agentId);
                 }
 
-                if (twin != null) {
-                    forwardTelemetryToAdapter(twin, vehicleType, payloadString);
-                }
+                // ─── CORREZIONE: Inoltra al Manager invece di bypassarlo andando all'adapter
+                // ───
+                forwardTelemetryToManager(vehicleType, agentId, payloadString);
             }
         } catch (Exception e) {
             System.err.println("VehicleMqttIngestionAdapter error: " + e.getMessage());
         }
     }
 
-    /**
-     * Complete concrete polymorphic dispatch routing toward vehicle specific physical adapters.
-     */
-    private void forwardTelemetryToAdapter(DigitalTwin twin, String vehicleType, String rawJson) {
+    private void forwardTelemetryToManager(String vehicleType, String agentId, String rawJson) {
         try {
             switch (vehicleType.toLowerCase()) {
                 case "ambulance":
-                    AmbulanceDigitalTwin ambTwin = (AmbulanceDigitalTwin) twin;
-                    ambTwin.getPhysicalAdapter().onAmbulanceJsonTelemetryReceived(rawJson);
+                    AmbulanceTelemetryPayload ambPayload = mapper.readValue(rawJson, AmbulanceTelemetryPayload.class);
+                    twinManager.onAmbulanceTelemetry(agentId, ambPayload);
                     break;
                 case "medcar":
-                    MedCarDigitalTwin carTwin = (MedCarDigitalTwin) twin;
-                    carTwin.getPhysicalAdapter().onMedCarJsonTelemetryReceived(rawJson);
+                    MedCarTelemetryPayload carPayload = mapper.readValue(rawJson, MedCarTelemetryPayload.class);
+                    twinManager.onMedCarTelemetry(agentId, carPayload);
                     break;
                 case "medhelicopter":
-                    MedHelicopterDigitalTwin helTwin = (MedHelicopterDigitalTwin) twin;
-                    MedHelicopterTelemetryPayload helPayload = mapper.readValue(rawJson, MedHelicopterTelemetryPayload.class);
-                    helTwin.getPhysicalAdapter().onMedHelicopterTelemetryReceived(helPayload);
+                    MedHelicopterTelemetryPayload helPayload = mapper.readValue(rawJson,
+                            MedHelicopterTelemetryPayload.class);
+                    twinManager.onMedHelicopterTelemetry(agentId, helPayload);
                     break;
                 default:
-                    System.err.println("VehicleMqttIngestionAdapter unsupported vehicle mapping segment: " + vehicleType);
+                    System.err.println("VehicleMqttIngestionAdapter unsupported vehicle type: " + vehicleType);
             }
         } catch (Exception e) {
-            System.err.println("VehicleMqttIngestionAdapter failed to route simulation event payload to twin structure: " + e.getMessage());
+            System.err.println("VehicleMqttIngestionAdapter failed to route telemetry to manager: " + e.getMessage());
         }
     }
 
@@ -119,5 +119,6 @@ public class VehicleMqttIngestionAdapter implements MqttCallback {
     }
 
     @Override
-    public void deliveryComplete(IMqttDeliveryToken token) {}
+    public void deliveryComplete(IMqttDeliveryToken token) {
+    }
 }

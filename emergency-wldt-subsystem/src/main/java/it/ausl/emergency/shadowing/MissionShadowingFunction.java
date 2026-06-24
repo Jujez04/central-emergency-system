@@ -21,9 +21,9 @@ import java.util.Map;
 public class MissionShadowingFunction extends ShadowingFunction {
 
     // Valori timestamp locali per il calcolo incrementale dei KPI
-    private volatile double cachedTimeCalled    = 0.0;
-    private volatile double cachedTimeOnScene   = 0.0;
-    private volatile double cachedTimeHandover  = 0.0;
+    private volatile double cachedTimeCalled = 0.0;
+    private volatile double cachedTimeOnScene = 0.0;
+    private volatile double cachedTimeHandover = 0.0;
 
     public MissionShadowingFunction(String id) {
         super(id);
@@ -61,7 +61,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
                     try {
                         createDigitalTwinStateProperty(property);
                         this.observePhysicalAssetProperty(property);
-                        System.out.println("[MissionShadowingFunction] -> Property created & observed: " + property.getKey());
+                        System.out.println(
+                                "[MissionShadowingFunction] -> Property created & observed: " + property.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -73,7 +74,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
                         DigitalTwinStateEvent dtEvent = new DigitalTwinStateEvent(event.getKey(), event.getType());
                         this.digitalTwinStateManager.registerEvent(dtEvent);
                         this.observePhysicalAssetEvent(event);
-                        System.out.println("[MissionShadowingFunction] -> Event registered & observed: " + event.getKey());
+                        System.out.println(
+                                "[MissionShadowingFunction] -> Event registered & observed: " + event.getKey());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -83,14 +85,17 @@ public class MissionShadowingFunction extends ShadowingFunction {
                 pad.getRelationships().forEach(rel -> {
                     try {
                         // Creiamo la relazione strutturale nel DigitalTwinState prima di osservarla
-                        DigitalTwinStateRelationship<String> dtStateRelationship = 
-                                new DigitalTwinStateRelationship<>(rel.getName(), rel.getName());
+                        DigitalTwinStateRelationship<String> dtStateRelationship = new DigitalTwinStateRelationship<>(
+                                rel.getName(), rel.getName());
                         this.digitalTwinStateManager.createRelationship(dtStateRelationship);
-                        
+
                         this.observePhysicalAssetRelationship(rel);
-                        System.out.println("[MissionShadowingFunction] -> Relationship structurally created & observed: " + rel.getName());
+                        System.out
+                                .println("[MissionShadowingFunction] -> Relationship structurally created & observed: "
+                                        + rel.getName());
                     } catch (Exception e) {
-                        System.err.println("[MissionShadowingFunction] Error creating structural relationship: " + e.getMessage());
+                        System.err.println(
+                                "[MissionShadowingFunction] Error creating structural relationship: " + e.getMessage());
                         e.printStackTrace();
                     }
                 });
@@ -124,7 +129,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
     }
 
     @Override
-    protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {}
+    protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {
+    }
 
     // ── Property Variation ────────────────────────────────────────────────────
 
@@ -132,21 +138,39 @@ public class MissionShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> event) {
         try {
             String propertyId = event.getPhysicalPropertyId();
-            Object body       = event.getBody();
+            Object body = event.getBody();
 
             this.digitalTwinStateManager.startStateTransaction();
+
+            // 1. Aggiorna normalmente la proprietà sul Twin dello stato WLDT
             updateDigitalTwinStateProperty(propertyId, body);
 
-            // Augmentation KPI
-            if (MissionKeywords.TIME_CALLED_PROPERTY_KEY.equals(propertyId) && body instanceof Double) {
-                cachedTimeCalled = (Double) body;
-                recomputeKpis();
-            } else if (MissionKeywords.TIME_ON_SCENE_PROPERTY_KEY.equals(propertyId) && body instanceof Double) {
-                cachedTimeOnScene = (Double) body;
-                recomputeKpis();
-            } else if (MissionKeywords.TIME_HANDOVER_PROPERTY_KEY.equals(propertyId) && body instanceof Double) {
-                cachedTimeHandover = (Double) body;
-                recomputeKpis();
+            // 2. Estrazione e normalizzazione adattiva dei timestamp
+            if (body instanceof Number num) {
+                double val = num.doubleValue();
+
+                // Protezione nel caso in cui arrivassero millisecondi Unix reali
+                if (val > 1_000_000_000_000.0) {
+                    val = val / 1000.0;
+                }
+
+                // Trasformiamo in minuscolo per fare un confronto elastico che ignora i
+                // prefissi
+                String lowKey = propertyId.toLowerCase();
+
+                if (lowKey.contains("called")) {
+                    this.cachedTimeCalled = val;
+                    recomputeKpis();
+                } else if (lowKey.contains("scene") || lowKey.contains("onscene")) {
+                    this.cachedTimeOnScene = val;
+                    recomputeKpis();
+                } else if (lowKey.contains("handover") || lowKey.contains("completed")
+                        || lowKey.contains("timestamp")) {
+                    // Cattura sia la costante standard, sia il "timestamp" grezzo di fine missione
+                    // di AnyLogic
+                    this.cachedTimeHandover = val;
+                    recomputeKpis();
+                }
             }
 
             this.digitalTwinStateManager.commitStateTransaction();
@@ -180,8 +204,10 @@ public class MissionShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAssetRelationshipEstablished(
             PhysicalAssetRelationshipInstanceCreatedWldtEvent<?> event) {
         try {
-            // CORREZIONE: In WLDT l'istanza fisica si estrae invocando .getBody() sul WldtEvent
-            if (event == null || event.getBody() == null) return;
+            // CORREZIONE: In WLDT l'istanza fisica si estrae invocando .getBody() sul
+            // WldtEvent
+            if (event == null || event.getBody() == null)
+                return;
 
             PhysicalAssetRelationshipInstance<?> paRelInstance = event.getBody();
             String relName = paRelInstance.getRelationship().getName();
@@ -192,8 +218,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
                     + " | instance key: " + relKey + " | target DT: " + relTargetId);
 
             // Creazione dell'istanza digitale corrispondente nello stato di WLDT
-            DigitalTwinStateRelationshipInstance<String> dtStateRelInstance = 
-                    new DigitalTwinStateRelationshipInstance<>(relName, relTargetId, relKey);
+            DigitalTwinStateRelationshipInstance<String> dtStateRelInstance = new DigitalTwinStateRelationshipInstance<>(
+                    relName, relTargetId, relKey);
 
             this.digitalTwinStateManager.startStateTransaction();
             this.digitalTwinStateManager.addRelationshipInstance(dtStateRelInstance);
@@ -210,7 +236,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
             PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> event) {
         try {
             // CORREZIONE: Estratto tramite .getBody() in simmetria con il metodo sopra
-            if (event == null || event.getBody() == null) return;
+            if (event == null || event.getBody() == null)
+                return;
 
             PhysicalAssetRelationshipInstance<?> paRelInstance = event.getBody();
             String relName = paRelInstance.getRelationship().getName();
@@ -232,7 +259,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> event) {
-        if (event == null) return;
+        if (event == null)
+            return;
 
         String actionKey = event.getActionKey();
         System.out.println("[MissionShadowingFunction] -> Digital action received: " + actionKey);
@@ -240,7 +268,9 @@ public class MissionShadowingFunction extends ShadowingFunction {
         if (MissionKeywords.ACTION_REROUTE_HOSPITAL.equals(actionKey)) {
             try {
                 this.publishPhysicalAssetActionWldtEvent(actionKey, event.getBody());
-                System.out.println("[MissionShadowingFunction] -> Reroute action forwarded to Physical Adapter. Target: " + event.getBody());
+                System.out
+                        .println("[MissionShadowingFunction] -> Reroute action forwarded to Physical Adapter. Target: "
+                                + event.getBody());
             } catch (Exception e) {
                 System.err.println("[MissionShadowingFunction] Reroute action delivery failure: " + e.getMessage());
             }
@@ -252,13 +282,18 @@ public class MissionShadowingFunction extends ShadowingFunction {
     // ── KPI Augmentation ──────────────────────────────────────────────────────
 
     private void recomputeKpis() throws Exception {
-        double kpiD09z = (cachedTimeOnScene > 0.0 && cachedTimeCalled > 0.0) ? cachedTimeOnScene - cachedTimeCalled : 0.0;
-        double kpiTotal = (cachedTimeHandover > 0.0 && cachedTimeCalled > 0.0) ? cachedTimeHandover - cachedTimeCalled : 0.0;
+        double kpiD09z = (cachedTimeOnScene > 0.0 && cachedTimeCalled > 0.0) ? cachedTimeOnScene - cachedTimeCalled
+                : 0.0;
+        double kpiTotal = (cachedTimeHandover > 0.0 && cachedTimeCalled > 0.0) ? cachedTimeHandover - cachedTimeCalled
+                : 0.0;
 
-        this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(MissionKeywords.KPI_D09Z_PROPERTY_KEY, kpiD09z));
-        this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(MissionKeywords.KPI_TOTAL_DURATION_PROPERTY_KEY, kpiTotal));
+        this.digitalTwinStateManager
+                .updateProperty(new DigitalTwinStateProperty<>(MissionKeywords.KPI_D09Z_PROPERTY_KEY, kpiD09z));
+        this.digitalTwinStateManager.updateProperty(
+                new DigitalTwinStateProperty<>(MissionKeywords.KPI_TOTAL_DURATION_PROPERTY_KEY, kpiTotal));
 
-        System.out.printf("[MissionShadowingFunction] -> KPIs updated | D09Z=%.1fs | TotalDuration=%.1fs%n", kpiD09z, kpiTotal);
+        System.out.printf("[MissionShadowingFunction] -> KPIs updated | D09Z=%.1fs | TotalDuration=%.1fs%n", kpiD09z,
+                kpiTotal);
     }
 
     // ── Type-safe Property Helpers ────────────────────────────────────────────
@@ -266,25 +301,35 @@ public class MissionShadowingFunction extends ShadowingFunction {
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();
         if (val instanceof Double) {
-            this.digitalTwinStateManager.createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Double) val));
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Double) val));
         } else if (val instanceof Integer) {
-            this.digitalTwinStateManager.createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Integer) val));
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Integer) val));
         } else if (val instanceof Boolean) {
-            this.digitalTwinStateManager.createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Boolean) val));
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (Boolean) val));
         } else if (val instanceof String) {
-            this.digitalTwinStateManager.createProperty(new DigitalTwinStateProperty<>(property.getKey(), (String) val));
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), (String) val));
+        } else if (val instanceof Long l) {
+            this.digitalTwinStateManager
+                    .createProperty(new DigitalTwinStateProperty<>(property.getKey(), l.doubleValue()));
         }
     }
 
     private void updateDigitalTwinStateProperty(String key, Object val) throws Exception {
-        if (val instanceof Double) {
-            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (Double) val));
-        } else if (val instanceof Integer) {
-            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (Integer) val));
-        } else if (val instanceof Boolean) {
-            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (Boolean) val));
-        } else if (val instanceof String) {
-            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, (String) val));
+        if (val instanceof Double d) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, d));
+        } else if (val instanceof Long l) {
+            // Salva come Double per uniformità con il resto del sistema
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, l.doubleValue()));
+        } else if (val instanceof Integer i) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, i));
+        } else if (val instanceof Boolean b) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, b));
+        } else if (val instanceof String s) {
+            this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, s));
         }
     }
 

@@ -11,6 +11,7 @@ import it.wldt.adapter.physical.event.PhysicalAssetRelationshipInstanceDeletedWl
 import it.wldt.core.model.ShadowingFunction;
 import it.wldt.core.state.DigitalTwinStateEvent;
 import it.wldt.core.state.DigitalTwinStateEventNotification;
+import it.wldt.core.state.DigitalTwinStateManager;
 import it.wldt.core.state.DigitalTwinStateProperty;
 
 import java.util.Map;
@@ -111,11 +112,44 @@ public class MedCarShadowingFunction extends ShadowingFunction {
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> event) {
         try {
+            String key = event.getPhysicalPropertyId();
+            Object val = event.getBody();
+
+            // 1. Recuperiamo lo stato attuale di questa specifica proprietà memorizzato nel Twin
+            java.util.Optional<it.wldt.core.state.DigitalTwinStateProperty<?>> existingProp = 
+                    this.digitalTwinStateManager.getDigitalTwinState().getProperty(key);
+
+            // 2. FILTRO DI MERGING (Solution 2): Impediamo l'azzeramento da polling incompleto
+            if (val instanceof Double dVal) {
+                // Se il GPS o il contatore manda 0.0 ma avevamo un valore storico valido, ignoriamo il parziale
+                if (dVal == 0.0 && existingProp.isPresent()) {
+                    // Proteggiamo attivamente il carburante e le coordinate stabili
+                    if (key.contains("fuel") || key.contains("latitude") || key.contains("longitude")) {
+                        return; // Scarta l'aggiornamento parziale fasullo, mantieni il vecchio stato!
+                    }
+                }
+            }
+            
+            if (val instanceof String sVal) {
+                // Se AnyLogic manda una stringa vuota o "null" testuale per i campi logistici transitati
+                if ((sVal.isEmpty() || "null".equalsIgnoreCase(sVal)) && existingProp.isPresent()) {
+                    return; // Non sovrascrivere lo stato operativo o il patientId con il vuoto
+                }
+            }
+
+            // 3. Se supera i controlli, esegui la transazione standard di WLDT
             this.digitalTwinStateManager.startStateTransaction();
-            updateDigitalTwinStateProperty(
-                    event.getPhysicalPropertyId(),
-                    event.getBody());
+            if (val instanceof String s) {
+                this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, s));
+            } else if (val instanceof Integer i) {
+                this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, i));
+            } else if (val instanceof Double d) {
+                this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, d));
+            } else if (val instanceof Boolean b) {
+                this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, b));
+            }
             this.digitalTwinStateManager.commitStateTransaction();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -187,5 +221,9 @@ public class MedCarShadowingFunction extends ShadowingFunction {
             throw new IllegalArgumentException(
                     "MedCarShadowingFunction Unsupported value type for key: " + key);
         }
+    }
+
+    public DigitalTwinStateManager getDigitalTwinStateManager() {
+        return this.digitalTwinStateManager;
     }
 }

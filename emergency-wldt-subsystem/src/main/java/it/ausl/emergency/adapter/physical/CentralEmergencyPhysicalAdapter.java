@@ -9,6 +9,10 @@ public class CentralEmergencyPhysicalAdapter extends ConfigurablePhysicalAdapter
 
     public CentralEmergencyPhysicalAdapter(String id, CentralEmergencyAdapterConfiguration configuration) {
         super(id, configuration);
+        System.out.println("[DEBUG ADAPTER] Adapter inizializzato con ID: " + id);
+        if (id == null) {
+            System.err.println("[ERRORE CRITICO] L'ID passato all'adapter è NULL!");
+        }
     }
 
     @Override

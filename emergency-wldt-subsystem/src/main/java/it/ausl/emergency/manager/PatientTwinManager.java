@@ -26,13 +26,15 @@ public class PatientTwinManager {
     private static final long BIND_POLL_INTERVAL_MS = 100L;
 
     private final DigitalTwinEngine engine;
+    private final MissionTwinManager missionManager;
 
     // Thread-safe: più messaggi MQTT possono arrivare in parallelo
     private final ConcurrentHashMap<String, PatientDigitalTwin> registry =
             new ConcurrentHashMap<>();
 
-    public PatientTwinManager(DigitalTwinEngine engine) {
+    public PatientTwinManager(DigitalTwinEngine engine, MissionTwinManager manager) {
         this.engine = engine;
+        this.missionManager = manager;
     }
 
     public void onTelemetryReceived(String agentId, PatientTelemetryPayload payload) {
@@ -55,7 +57,7 @@ public class PatientTwinManager {
         }
 
         twin.getPhysicalAdapter().onPatientTelemetryReceived(payload);
-
+        missionManager.onPatientTelemetryUpdate(agentId, payload);
         if (PatientKeywords.HANDOVER_STATE_VALUE.equalsIgnoreCase(payload.state())) {
             scheduleCleanup(agentId);
         }

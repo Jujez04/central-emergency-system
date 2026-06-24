@@ -193,7 +193,7 @@ for(Hospital h: hospitalsCollection) {
 	h.agentId = String.format("HOS-%02d", hospitalId++);
 }
 try {
-	mqttClient = new MqttClient("tcp://localhost:1883", "Simulation");
+	mqttClient = new MqttClient("tcp://127.0.0.1:1883", "Simulation");
 	mqttClient.connect();
 	traceln("Connected to MQTT broker");
 	mqttClient.setCallback(new MqttCallback() {
