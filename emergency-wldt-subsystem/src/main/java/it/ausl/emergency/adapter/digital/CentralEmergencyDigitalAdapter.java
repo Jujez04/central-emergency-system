@@ -313,7 +313,7 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 return;
             }
             try {
-                sendJson(exchange, 200, buildHospitalResponse());
+                sendJson(exchange, 200, buildHospitalsResponse());
             } catch (Exception e) {
                 sendJson(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
             }
@@ -534,12 +534,11 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                                     ? node.get("confirmedSeverityCode").asText()
                                     : null;
                             System.out.printf(
-                                "[DEBUG] Missione %s COMPLETED | timeCalled=%.1f | timeOnScene=%.1f | d09z=%.1f%n",
-                                missionId,
-                                readDoubleProperty(state, MissionKeywords.TIME_CALLED_PROPERTY_KEY).orElse(-1.0),
-                                readDoubleProperty(state, MissionKeywords.TIME_ON_SCENE_PROPERTY_KEY).orElse(-1.0),
-                                d09z
-                            );
+                                    "[DEBUG] Missione %s COMPLETED | timeCalled=%.1f | timeOnScene=%.1f | d09z=%.1f%n",
+                                    missionId,
+                                    readDoubleProperty(state, MissionKeywords.TIME_CALLED_PROPERTY_KEY).orElse(-1.0),
+                                    readDoubleProperty(state, MissionKeywords.TIME_ON_SCENE_PROPERTY_KEY).orElse(-1.0),
+                                    d09z);
                             // Incrementa le completate e calcola la media D09Z geometrica reale
                             shadowingFunction.onMissionCompleted(d09z, sevCode, confirmedSev);
                             System.out.printf(
@@ -660,33 +659,59 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 .ifPresent(v -> node.put("missionsSinceMaintenance", v));
     }
 
-    private String buildHospitalResponse() throws Exception {
-        ArrayNode ospedali = mapper.createArrayNode();
+    private String buildHospitalsResponse() throws Exception {
+        ArrayNode hospitals = mapper.createArrayNode();
         if (hospitalManager == null)
-            return mapper.writeValueAsString(ospedali);
+            return mapper.writeValueAsString(hospitals);
 
         for (Map.Entry<String, HospitalDigitalTwin> entry : hospitalManager.getRegistry().entrySet()) {
             String hospitalId = entry.getKey();
             HospitalDigitalTwin twin = entry.getValue();
             ObjectNode node = mapper.createObjectNode();
             node.put("hospitalId", hospitalId);
+
             try {
                 DigitalTwinState state = twin.getShadowingFunction()
                         .getDigitalTwinStateManager().getDigitalTwinState();
+
                 if (state != null) {
+                    // Lettura del livello di assistenza (Standard)
                     readIntProperty(state, HospitalKeywords.ASSISTANCE_LEVEL_PROPERTY_KEY)
                             .ifPresent(v -> node.put("assistanceLevel", v));
-                    readIntProperty(state, HospitalKeywords.PATIENT_ASSISTED_PROPERTY_KEY)
-                            .ifPresent(v -> node.put("patientAssisted", v));
-                    node.put("lat", twin.getPhysicalAdapter().getConfiguration().getDefaultLatitude());
-                    node.put("lon", twin.getPhysicalAdapter().getConfiguration().getDefaultLongitude());
+
+                    // ─── INIZIO ESTRAZIONE ADATTIVA DELLA CONTA PAZIENTI ───
+                    int resolvedPatients = 0;
+                    boolean foundPatients = false;
+
+                    // Scansione elastica per intercettare la chiave a prescindere dal namespace o
+                    // prefisso
+                    for (it.wldt.core.state.DigitalTwinStateProperty<?> p : state.getPropertyList().get()) {
+                        String pKey = p.getKey().toLowerCase();
+                        if (pKey.contains("patient") || pKey.contains("assisted")) {
+                            if (p.getValue() instanceof Number num) {
+                                resolvedPatients = num.intValue();
+                                foundPatients = true;
+                                break; // Trovato il contatore, possiamo uscire dal loop del twin
+                            }
+                        }
+                    }
+
+                    if (foundPatients) {
+                        node.put("patientAssisted", resolvedPatients);
+                    } else {
+                        // Fallback tradizionale nel caso in cui la scansione non trovasse
+                        // corrispondenze parziali
+                        readIntProperty(state, HospitalKeywords.PATIENT_ASSISTED_PROPERTY_KEY)
+                                .ifPresent(v -> node.put("patientAssisted", v));
+                    }
+                    // ─── FINE ESTRAZIONE ADATTIVA ───────────────────────────
                 }
             } catch (Exception e) {
                 node.put("readError", e.getMessage());
             }
-            ospedali.add(node);
+            hospitals.add(node);
         }
-        return mapper.writeValueAsString(ospedali);
+        return mapper.writeValueAsString(hospitals);
     }
 
     // ── Helpers di lettura type-safe ──────────────────────────────────────────

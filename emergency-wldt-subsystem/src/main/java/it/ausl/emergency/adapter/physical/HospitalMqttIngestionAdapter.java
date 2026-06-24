@@ -78,9 +78,9 @@ public class HospitalMqttIngestionAdapter implements MqttCallback {
                 return;
             }
 
-            if (topic.startsWith("ces/hospital/") && topic.endsWith("/state")) {
+            if (topic.startsWith("ces/hospital/")) {
                 String[] segments = topic.split("/");
-                if (segments.length < 4)
+                if (segments.length < 3)
                     return;
                 String agentId = segments[2];
 
