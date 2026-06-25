@@ -13,18 +13,6 @@ import it.wldt.exception.WldtRuntimeException;
 import it.wldt.exception.WldtWorkerException;
 
 /**
- * Assembla i componenti del Digital Twin del MedHelicopter e li registra
- * nel WLDT engine.
- *
- * Uso tipico (test / main):
- * 
- * <pre>
- * MedHelicopterShadowingFunction sf = new MedHelicopterShadowingFunction("heli-sf-" + agentId);
- * MedHelicopterDigitalTwin dt = new MedHelicopterDigitalTwin("dt-" + agentId, sf);
- * DigitalTwinEngine engine = new DigitalTwinEngine();
- * engine.addDigitalTwin(dt);
- * engine.startAll();
- * </pre>
  */
 public class MedHelicopterDigitalTwin extends DigitalTwin {
 

@@ -259,24 +259,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> event) {
-        if (event == null)
-            return;
-
-        String actionKey = event.getActionKey();
-        System.out.println("[MissionShadowingFunction] -> Digital action received: " + actionKey);
-
-        if (MissionKeywords.ACTION_REROUTE_HOSPITAL.equals(actionKey)) {
-            try {
-                this.publishPhysicalAssetActionWldtEvent(actionKey, event.getBody());
-                System.out
-                        .println("[MissionShadowingFunction] -> Reroute action forwarded to Physical Adapter. Target: "
-                                + event.getBody());
-            } catch (Exception e) {
-                System.err.println("[MissionShadowingFunction] Reroute action delivery failure: " + e.getMessage());
-            }
-        } else {
-            System.out.println("[MissionShadowingFunction] -> Unsupported action key: " + actionKey);
-        }
     }
 
     // ── KPI Augmentation ──────────────────────────────────────────────────────

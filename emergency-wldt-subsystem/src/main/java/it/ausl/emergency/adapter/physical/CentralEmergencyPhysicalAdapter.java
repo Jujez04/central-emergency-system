@@ -33,10 +33,6 @@ public class CentralEmergencyPhysicalAdapter extends ConfigurablePhysicalAdapter
 
         pad.getProperties().add(new PhysicalAssetProperty<>(CentralEmergencyKeywords.PROPERTY_STATUS, getConfiguration().getInitialStatus()));
         pad.getProperties().add(new PhysicalAssetProperty<>(CentralEmergencyKeywords.PROPERTY_ACTIVE_MISSIONS, getConfiguration().getDefaultActiveMissions()));
-
-        pad.getActions().add(new PhysicalAssetAction(CentralEmergencyKeywords.ACTION_TRIAGE, "centrale.triage", CentralEmergencyKeywords.CONTENT_TYPE_JSON));
-        pad.getActions().add(new PhysicalAssetAction(CentralEmergencyKeywords.ACTION_REDIRECT, "centrale.redirect", CentralEmergencyKeywords.CONTENT_TYPE_JSON));
-
         pad.getRelationships().add(new PhysicalAssetRelationship<>(CentralEmergencyKeywords.REL_MONITORS_HOSPITAL, "hospital"));
         pad.getRelationships().add(new PhysicalAssetRelationship<>(CentralEmergencyKeywords.REL_MANAGES_VEHICLE, "vehicle"));
         pad.getRelationships().add(new PhysicalAssetRelationship<>(CentralEmergencyKeywords.REL_TRACKS_MISSION, "mission"));
@@ -46,9 +42,5 @@ public class CentralEmergencyPhysicalAdapter extends ConfigurablePhysicalAdapter
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
-        if (physicalActionEvent == null) return;
-        String actionKey = physicalActionEvent.getActionKey();
-        Object body = physicalActionEvent.getBody();
-
     }
 }

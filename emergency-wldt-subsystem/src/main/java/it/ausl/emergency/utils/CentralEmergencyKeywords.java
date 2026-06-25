@@ -1,8 +1,12 @@
 package it.ausl.emergency.utils;
 
+/**
+ * Utility class for Central Emergency Unit properties and what kind of KPI that
+ * the application has to show on the dashboard.
+ */
 public class CentralEmergencyKeywords {
 
-    // ── Property Keys ────────────────────────────────────────────────────────
+    // Property Keys
     public static final String PROPERTY_STATUS = "central:status";
     public static final String PROPERTY_ACTIVE_MISSIONS = "central:activeMissionsCount";
 
@@ -16,16 +20,11 @@ public class CentralEmergencyKeywords {
     public static final String KPI_UNDER_TRIAGE_COUNT = "central:kpi:underTriageCount";
     public static final String KPI_TRIAGE_TOTAL_ASSESSED = "central:kpi:triageTotalAssessed";
 
-    // ── Semantic Relationship Names ──────────────────────────────────────────
+    // Semantic Relationship Names
     public static final String REL_MONITORS_HOSPITAL = "central:relationship:monitorsHospital";
     public static final String REL_MANAGES_VEHICLE = "central:relationship:managesVehicle";
     public static final String REL_TRACKS_MISSION = "central:relationship:tracksMission";
 
-    // ── Closed-Loop Actuation Actions ────────────────────────────────────────
-    public static final String ACTION_TRIAGE = "central:action:triagePatient";
-    public static final String ACTION_REDIRECT = "central:action:redirectMission";
-
-    // ── Content Types ────────────────────────────────────────────────────────
     public static final String CONTENT_TYPE_JSON = "application/json";
 
     private CentralEmergencyKeywords() {

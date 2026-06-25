@@ -104,12 +104,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         pad.getRelationships().add(involvesVehicleRelationship);
         pad.getRelationships().add(targetsHospitalRelationship);
 
-        // Azione di reroute ospedaliero
-        pad.getActions().add(new PhysicalAssetAction(
-                MissionKeywords.ACTION_REROUTE_HOSPITAL,
-                "mission.reroute",
-                MissionKeywords.CONTENT_TYPE_TEXT));
-
         return pad;
     }
 
@@ -286,30 +280,5 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> event) {
-        if (event == null) return;
-
-        if (MissionKeywords.ACTION_REROUTE_HOSPITAL.equals(event.getActionKey())
-                && event.getBody() instanceof String newHospitalId) {
-            try {
-                publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
-                        MissionKeywords.HOSPITAL_ID_PROPERTY_KEY, newHospitalId));
-
-                if (targetsHospitalRelationship != null) {
-                    publishPhysicalAssetRelationshipCreatedWldtEvent(
-                            new PhysicalAssetRelationshipInstanceCreatedWldtEvent<>(
-                                    targetsHospitalRelationship.createRelationshipInstance(
-                                            "rel-hospital-" + newHospitalId)));
-                }
-
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MissionKeywords.HOSPITAL_ASSIGNED_EVENT_KEY, newHospitalId));
-
-            } catch (EventBusException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.err.println("[MissionPhysicalAdapter] Unknown action key: "
-                    + (event.getActionKey() != null ? event.getActionKey() : "null"));
-        }
     }
 }

@@ -319,36 +319,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
             }
         });
 
-        restServer.createContext("/api/central/triage", exchange -> {
-            handleCors(exchange);
-            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(405, -1);
-                return;
-            }
-            try {
-                String body = new String(exchange.getRequestBody().readAllBytes());
-                publishDigitalActionWldtEvent(CentralEmergencyKeywords.ACTION_TRIAGE, body);
-                sendJson(exchange, 202, "{\"status\":\"TRIAGE_ACCEPTED\"}");
-            } catch (Exception e) {
-                sendJson(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
-            }
-        });
-
-        restServer.createContext("/api/central/redirect", exchange -> {
-            handleCors(exchange);
-            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(405, -1);
-                return;
-            }
-            try {
-                String body = new String(exchange.getRequestBody().readAllBytes());
-                publishDigitalActionWldtEvent(CentralEmergencyKeywords.ACTION_REDIRECT, body);
-                sendJson(exchange, 200, "{\"status\":\"REDIRECT_COMMAND_FORWARDED\"}");
-            } catch (Exception e) {
-                sendJson(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
-            }
-        });
-
         restServer.setExecutor(null);
         restServer.start();
         System.out.println("[CentralEmergencyDigitalAdapter] REST & SSE Engine attivato sulla porta " + PORT);

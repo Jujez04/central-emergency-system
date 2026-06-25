@@ -185,18 +185,6 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
 
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> event) {
-        if (event == null)
-            return;
-        String key = event.getActionKey();
-
-        if (CentralEmergencyKeywords.ACTION_TRIAGE.equals(key)
-                || CentralEmergencyKeywords.ACTION_REDIRECT.equals(key)) {
-            try {
-                this.publishPhysicalAssetActionWldtEvent(key, event.getBody());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public DigitalTwinStateManager getDigitalTwinStateManager() {
