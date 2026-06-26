@@ -85,15 +85,6 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
 
         @Override
         public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
-                if (physicalActionEvent == null)
-                        return;
-
-                String actionKey = physicalActionEvent.getActionKey();
-
-                if (AmbulanceKeywords.REDIRECT_VEHICLE_ACTION_KEY.equals(actionKey)) {
-                        String targetHospitalId = (String) physicalActionEvent.getBody();
-                        // ....
-                }
         }
 
         public void onAmbulanceJsonTelemetryReceived(String jsonPayload) {

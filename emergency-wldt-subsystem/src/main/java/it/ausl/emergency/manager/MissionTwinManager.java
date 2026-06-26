@@ -43,35 +43,13 @@ public class MissionTwinManager {
     private static final long BIND_POLL_MS = 50L;
 
     private final DigitalTwinEngine engine;
-
-    /** Twin attivi indicizzati per missionId ("M-" + patientId). */
     private final ConcurrentHashMap<String, MissionDigitalTwin> registry = new ConcurrentHashMap<>();
-
-    /**
-     * Ultimo snapshot aggregato per ogni missione.
-     * Viene mantenuto anche dopo che il twin è stato rimosso dal registry,
-     * in modo che onVehicleTelemetryUpdate possa ancora leggere l'hospitalId
-     * corrente senza accedere allo stato WLDT.
-     */
     private final ConcurrentHashMap<String, MissionTelemetryPayload> missionSnapshots = new ConcurrentHashMap<>();
 
     public MissionTwinManager(DigitalTwinEngine engine) {
         this.engine = engine;
     }
 
-    // ── Ingestion dal Paziente ────────────────────────────────────────────────
-
-    /**
-     * Punto di ingresso primario: chiamato ogni volta che arriva un payload
-     * dal paziente.
-     *
-     * Se è la prima telemetria per questo patientId, crea la MissioneDT.
-     * Aggiorna quindi tutte le proprietà della missione derivandole dallo
-     * stato clinico del paziente.
-     *
-     * @param patientId      ID agente AnyLogic del paziente
-     * @param patientPayload payload telemetrico corrente del paziente
-     */
     public synchronized void onPatientTelemetryUpdate(String patientId,
             PatientTelemetryPayload patientPayload) {
         if (patientId == null || "null".equals(patientId))
@@ -79,11 +57,8 @@ public class MissionTwinManager {
 
         String missionId = "M-" + patientId;
         MissionTelemetryPayload oldSnapshot = missionSnapshots.get(missionId);
-
-        // Preserva l'hospitalId già impostato dai veicoli (il paziente non lo conosce)
         String currentHospitalId = (oldSnapshot != null) ? oldSnapshot.hospitalId() : "null";
 
-        // Ricostruisce i timestamp incrementalmente
         double timeOnScene = (oldSnapshot != null) ? oldSnapshot.timeOnScene() : 0.0;
         double timeDeparted = (oldSnapshot != null) ? oldSnapshot.timeDeparted() : 0.0;
         double timeHandover = (oldSnapshot != null) ? oldSnapshot.timeHandover() : 0.0;
@@ -112,23 +87,6 @@ public class MissionTwinManager {
         }
     }
 
-    // ── Ingestion dai Veicoli ─────────────────────────────────────────────────
-
-    /**
-     * Chiamato quando arriva un payload da un veicolo (ambulanza, MedCar,
-     * MedHelicopter) che dichiara di avere un paziente assegnato.
-     *
-     * IMPORTANTE: se non esiste già una missione per il patientId dichiarato
-     * dal veicolo, il payload viene ignorato. La missione nasce SOLO dalla
-     * telemetria del paziente.
-     *
-     * Il veicolo contribuisce con:
-     * - hospitalId (se valorizzato e diverso da quello corrente → rerouting)
-     * - collegamento semantico involves_vehicle
-     *
-     * @param vehicleId      ID agente AnyLogic del veicolo
-     * @param vehiclePayload payload compatibile (già normalizzato dal chiamante)
-     */
     public synchronized void onVehicleTelemetryUpdate(String vehicleId,
             AmbulanceTelemetryPayload vehiclePayload) {
         String patientId = vehiclePayload.patientId();
@@ -138,8 +96,6 @@ public class MissionTwinManager {
         String missionId = "M-" + patientId;
         MissionTelemetryPayload oldSnapshot = missionSnapshots.get(missionId);
 
-        // FIX PRINCIPALE: se la missione non esiste ancora, ignora il payload.
-        // Sarà il primo payload del paziente a crearla.
         if (oldSnapshot == null) {
             System.out.printf(
                     "[MissionTwinManager] Veicolo %s dichiara paziente %s ma la missione %s "
@@ -148,8 +104,6 @@ public class MissionTwinManager {
             return;
         }
 
-        // Determina lo stato della missione: se il veicolo sta andando all'ospedale,
-        // aggiorna lo stato a TRANSPORTING (solo se la missione è ancora ON_SCENE)
         String missionState = oldSnapshot.state();
         if ("MovingToHospital".equalsIgnoreCase(vehiclePayload.state())
                 && !MissionKeywords.STATE_TRANSPORTING.equalsIgnoreCase(missionState)
@@ -157,31 +111,24 @@ public class MissionTwinManager {
             missionState = MissionKeywords.STATE_TRANSPORTING;
         }
 
-        // ─── NUOVA LOGICA DI ACQUISIZIONE GEOMETRICA DEI TEMPI ───
         double timeOnScene = oldSnapshot.timeOnScene();
         double timeDeparted = oldSnapshot.timeDeparted();
         double timeHandover = oldSnapshot.timeHandover();
 
         String vState = vehiclePayload.state();
-
-        // 1. Il veicolo arriva sul posto (Inizio trattamento o supporto)
         if (timeOnScene == 0.0 && ("TakingPatient".equalsIgnoreCase(vState)
                 || "Supporting".equalsIgnoreCase(vState)
                 || "TreatingPatient".equalsIgnoreCase(vState))) {
-            timeOnScene = vehiclePayload.timestamp(); // Timestamp reale della simulazione!
+            timeOnScene = vehiclePayload.timestamp();
         }
 
-        // 2. Il veicolo parte verso l'ospedale (Inizio trasporto)
         if (timeDeparted == 0.0 && "MovingToHospital".equalsIgnoreCase(vState)) {
             timeDeparted = vehiclePayload.timestamp();
         }
 
-        // 3. Il veicolo arriva in ospedale (Handover completato)
         if (timeHandover == 0.0 && "Handover".equalsIgnoreCase(vState)) {
             timeHandover = vehiclePayload.timestamp();
         }
-        // ─────────────────────────────────────────────────────────
-
         String oldHospitalId = oldSnapshot.hospitalId();
         String newHospitalId = vehiclePayload.hospitalId();
 
@@ -196,17 +143,14 @@ public class MissionTwinManager {
                         : oldHospitalId,
                 oldSnapshot.clinicalDeteriorated(),
                 oldSnapshot.timeCalled(),
-                timeOnScene, // Passiamo i tempi correttamente valorizzati
+                timeOnScene,
                 timeDeparted,
                 timeHandover);
 
         MissionDigitalTwin twin = updateAndSyncTwin(missionId, newPayload);
 
         if (twin != null && twin.getPhysicalAdapter() != null) {
-            // Collega il veicolo alla missione
             twin.getPhysicalAdapter().linkVehicle(vehicleId);
-
-            // Gestione del link ospedaliero (eventuale rerouting)
             if (newHospitalId != null && !"null".equals(newHospitalId) && !newHospitalId.isEmpty()
                     && !newHospitalId.equals(oldHospitalId)) {
                 if (oldHospitalId != null && !"null".equals(oldHospitalId)) {
@@ -217,12 +161,6 @@ public class MissionTwinManager {
         }
     }
 
-    // ── API pubblica ──────────────────────────────────────────────────────────
-
-    /**
-     * Numero di missioni attive nel registry (usato da
-     * CentralEmergencyDigitalAdapter).
-     */
     public int activeMissionCount() {
         return registry.size();
     }
@@ -231,12 +169,6 @@ public class MissionTwinManager {
         return Collections.unmodifiableMap(registry);
     }
 
-    // ── Logica interna ────────────────────────────────────────────────────────
-
-    /**
-     * Aggiorna lo snapshot in memoria e propaga il payload al physical adapter
-     * del twin (creandolo se necessario).
-     */
     private MissionDigitalTwin updateAndSyncTwin(String missionId,
             MissionTelemetryPayload payload) {
         missionSnapshots.put(missionId, payload);
@@ -267,19 +199,6 @@ public class MissionTwinManager {
         return twin;
     }
 
-    /**
-     * Mappa lo stato del paziente (statechart AnyLogic) allo stato della
-     * missione (lifecycle DT).
-     *
-     * Mapping completo:
-     * Signaled → Triaging (chiamata ricevuta, triage telefonico in corso)
-     * WaitingSupport → Dispatched (veicolo inviato, in avvicinamento)
-     * BeingTreated → OnScene (équipe sul posto, valutazione clinica)
-     * MovingToHospital → Transporting (paziente a bordo, in viaggio verso ospedale)
-     * AtHospital → Completed (handover completato, missione conclusa)
-     * Completed → Completed (alias presente in alcune versioni della sim)
-     * Handover → Completed (alias esplicito di handover)
-     */
     private String mapPatientStateToMission(String patientState) {
         if (patientState == null)
             return MissionKeywords.STATE_TRIAGING;
@@ -297,11 +216,6 @@ public class MissionTwinManager {
         };
     }
 
-    /**
-     * Attende che il twin abbia completato il binding (PAD pubblicata e stato
-     * iniziale scritto nel DigitalTwinStateManager) prima di procedere con
-     * il primo aggiornamento.
-     */
     private void waitForBinding(MissionDigitalTwin twin) {
         long deadline = System.currentTimeMillis() + BIND_TIMEOUT_MS;
         while (System.currentTimeMillis() < deadline) {
@@ -326,20 +240,7 @@ public class MissionTwinManager {
                 + BIND_TIMEOUT_MS + "ms per il twin " + twin);
     }
 
-    /**
-     * Rimuove il twin dal registry dopo un ritardo per permettere:
-     * 1. al CentralEmergencyDigitalAdapter di rilevare lo stato COMPLETED
-     * e aggiornare i KPI (che richiede almeno un ciclo di polling),
-     * 2. eventuali payload ritardati di veicoli di aggiornare l'hospitalId
-     * prima della rimozione.
-     *
-     * Lo snapshot in missionSnapshots viene rimosso insieme al twin.
-     * I dati storici della missione sono già preservati nel
-     * completedMissionsHistory del CentralEmergencyDigitalAdapter.
-     */
     private void scheduleCleanup(String missionId) {
-        // Evita di scheduleCleanup più volte per la stessa missione
-        // controllando se il twin è già stato rimosso
         if (!registry.containsKey(missionId))
             return;
 

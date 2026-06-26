@@ -15,19 +15,6 @@ import it.wldt.core.state.DigitalTwinStateProperty;
 
 import java.util.Map;
 
-/**
- * Shadowing Function della MedCar.
- *
- * Traduce lo stato dell'agente MedCar della simulazione AnyLogic
- * nello stato del Digital Twin, esposto poi verso l'esterno dal
- * MedCarDigitalAdapter.
- *
- * Rispetto all'AmbulanceShadowingFunction:
- *  - Nessuna azione digitale (la MedCar non espone redirect)
- *  - Gestisce homeBaseId (String) invece di hospitalId
- *  - Helper createDigitalTwinStateProperty / updateDigitalTwinStateProperty
- *    identici per struttura, specifici per namespace MedCar
- */
 public class MedCarShadowingFunction extends ShadowingFunction {
 
     public MedCarShadowingFunction(String id) {
@@ -114,29 +101,21 @@ public class MedCarShadowingFunction extends ShadowingFunction {
             String key = event.getPhysicalPropertyId();
             Object val = event.getBody();
 
-            // 1. Recuperiamo lo stato attuale di questa specifica proprietà memorizzato nel Twin
-            java.util.Optional<it.wldt.core.state.DigitalTwinStateProperty<?>> existingProp = 
-                    this.digitalTwinStateManager.getDigitalTwinState().getProperty(key);
+            java.util.Optional<it.wldt.core.state.DigitalTwinStateProperty<?>> existingProp = this.digitalTwinStateManager.getDigitalTwinState().getProperty(key);
 
-            // 2. FILTRO DI MERGING (Solution 2): Impediamo l'azzeramento da polling incompleto
             if (val instanceof Double dVal) {
-                // Se il GPS o il contatore manda 0.0 ma avevamo un valore storico valido, ignoriamo il parziale
                 if (dVal == 0.0 && existingProp.isPresent()) {
-                    // Proteggiamo attivamente il carburante e le coordinate stabili
                     if (key.contains("fuel") || key.contains("latitude") || key.contains("longitude")) {
-                        return; // Scarta l'aggiornamento parziale fasullo, mantieni il vecchio stato!
+                        return;
                     }
                 }
             }
-            
             if (val instanceof String sVal) {
-                // Se AnyLogic manda una stringa vuota o "null" testuale per i campi logistici transitati
                 if ((sVal.isEmpty() || "null".equalsIgnoreCase(sVal)) && existingProp.isPresent()) {
-                    return; // Non sovrascrivere lo stato operativo o il patientId con il vuoto
+                    return;
                 }
             }
 
-            // 3. Se supera i controlli, esegui la transazione standard di WLDT
             this.digitalTwinStateManager.startStateTransaction();
             if (val instanceof String s) {
                 this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, s));
@@ -153,8 +132,6 @@ public class MedCarShadowingFunction extends ShadowingFunction {
             e.printStackTrace();
         }
     }
-
-    // ── Event Notification ────────────────────────────────────────────────────
 
     @Override
     protected void onPhysicalAssetEventNotification(PhysicalAssetEventWldtEvent<?> event) {

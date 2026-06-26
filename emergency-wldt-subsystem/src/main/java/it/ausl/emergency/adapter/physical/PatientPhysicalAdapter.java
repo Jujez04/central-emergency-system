@@ -87,19 +87,14 @@ public class PatientPhysicalAdapter extends ConfigurablePhysicalAdapter<PatientA
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(PatientKeywords.LONGITUDE_PROPERTY_KEY, payload.lon()));
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(PatientKeywords.TIME_CALLED_PROPERTY_KEY, payload.timeCalled()));
 
-            // Domain Event 1 — CLINICAL_ASSESSMENT
             boolean isNowBeingTreated  = PatientKeywords.STATE_BEING_TREATED.equalsIgnoreCase(payload.state());
             boolean wasBeingTreated    = lastTelemetry != null && PatientKeywords.STATE_BEING_TREATED.equalsIgnoreCase(lastTelemetry.state());
             if (isNowBeingTreated && !wasBeingTreated) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(PatientKeywords.CLINICAL_ASSESSMENT_EVENT_KEY, payload));
             }
-
-            // Domain Event 2 — CLINICAL_DETERIORATION
             if (payload.isClinicalDeteriorated() && (lastTelemetry == null || !lastTelemetry.isClinicalDeteriorated())) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(PatientKeywords.CLINICAL_DETERIORATION_EVENT_KEY, payload));
             }
-
-            // Domain Event 3 — HANDOVER_COMPLETED
             boolean isNowAtHospital = PatientKeywords.STATE_AT_HOSPITAL.equalsIgnoreCase(payload.state());
             boolean wasAtHospital   = lastTelemetry != null && PatientKeywords.STATE_AT_HOSPITAL.equalsIgnoreCase(lastTelemetry.state());
             if (isNowAtHospital && !wasAtHospital) {

@@ -1,12 +1,10 @@
 package it.ausl.emergency.adapter.physical;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.ausl.emergency.adapter.configuration.MissionAdapterConfiguration;
 import it.ausl.emergency.payload.MissionTelemetryPayload;
 import it.ausl.emergency.utils.MissionKeywords;
 import it.wldt.adapter.physical.ConfigurablePhysicalAdapter;
 import it.wldt.adapter.physical.PhysicalAssetDescription;
-import it.wldt.adapter.physical.PhysicalAssetAction;
 import it.wldt.adapter.physical.PhysicalAssetEvent;
 import it.wldt.adapter.physical.PhysicalAssetProperty;
 import it.wldt.adapter.physical.PhysicalAssetRelationship;
@@ -17,39 +15,18 @@ import it.wldt.adapter.physical.event.PhysicalAssetEventWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetRelationshipInstanceCreatedWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetRelationshipInstanceDeletedWldtEvent;
 
-/**
- * Physical Adapter per il Mission Digital Twin.
- *
- * La missione è un'entità AGGREGATA: non esiste un topic MQTT dedicato.
- * Il MissionTwinManager la costruisce aggregando i payload di:
- *   - PatientTelemetryPayload  → stato clinico + timings
- *   - AmbulanceTelemetryPayload → hospitalId + stato veicolo
- *
- * Questo adapter:
- * 1. Pubblica la PAD al binding con tutte le proprietà, gli eventi, le
- *    relazioni e l'azione di reroute.
- * 2. Riceve MissionTelemetryPayload già aggregati dal MissionTwinManager
- *    e li inoltra alla ShadowingFunction.
- * 3. Gestisce i link semantici verso Patient, Vehicle e Hospital tramite
- *    i metodi linkPatient / linkVehicle / linkHospital / unlinkHospital
- *    che vengono chiamati dal MissionTwinManager.
- */
 public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionAdapterConfiguration> {
 
-    // Relationship descriptors conservati per creare le istanze in seguito
     private PhysicalAssetRelationship<String> hasPatientRelationship    = null;
     private PhysicalAssetRelationship<String> involvesVehicleRelationship = null;
     private PhysicalAssetRelationship<String> targetsHospitalRelationship = null;
 
-    // Flag per evitare di ri-pubblicare relazioni già attive
     private volatile boolean patientRelPublished  = false;
     private volatile boolean hospitalRelPublished = false;
 
     public MissionPhysicalAdapter(String id, MissionAdapterConfiguration configuration) {
         super(id, configuration);
     }
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     @Override
     public void onAdapterStart() {
@@ -64,13 +41,10 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
     public void onAdapterStop() {
     }
 
-    // ── PAD Builder ───────────────────────────────────────────────────────────
-
     private PhysicalAssetDescription buildPhysicalAssetDescription() {
         PhysicalAssetDescription pad = new PhysicalAssetDescription();
         MissionAdapterConfiguration cfg = getConfiguration();
 
-        // Proprietà fisiche
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.STATE_PROPERTY_KEY,              cfg.getDefaultState()));
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.SEVERITY_CODE_PROPERTY_KEY,      cfg.getDefaultSeverityCode()));
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.CONFIRMED_SEVERITY_PROPERTY_KEY, cfg.getDefaultConfirmedSeverity()));
@@ -83,11 +57,9 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.TIME_DEPARTED_PROPERTY_KEY,      cfg.getDefaultTimeDeparted()));
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.TIME_HANDOVER_PROPERTY_KEY,      cfg.getDefaultTimeHandover()));
 
-        // Proprietà KPI augmented (inizializzate a 0)
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.KPI_D09Z_PROPERTY_KEY,           0.0));
         pad.getProperties().add(new PhysicalAssetProperty<>(MissionKeywords.KPI_TOTAL_DURATION_PROPERTY_KEY, 0.0));
 
-        // Domain Events
         pad.getEvents().add(new PhysicalAssetEvent(MissionKeywords.VEHICLE_DISPATCHED_EVENT_KEY,      MissionKeywords.CONTENT_TYPE_JSON));
         pad.getEvents().add(new PhysicalAssetEvent(MissionKeywords.ARRIVED_ON_SCENE_EVENT_KEY,        MissionKeywords.CONTENT_TYPE_JSON));
         pad.getEvents().add(new PhysicalAssetEvent(MissionKeywords.CLINICAL_ASSESSMENT_EVENT_KEY,     MissionKeywords.CONTENT_TYPE_JSON));
@@ -95,7 +67,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         pad.getEvents().add(new PhysicalAssetEvent(MissionKeywords.HOSPITAL_ASSIGNED_EVENT_KEY,       MissionKeywords.CONTENT_TYPE_TEXT));
         pad.getEvents().add(new PhysicalAssetEvent(MissionKeywords.HANDOVER_COMPLETED_EVENT_KEY,      MissionKeywords.CONTENT_TYPE_JSON));
 
-        // Relazioni semantiche
         hasPatientRelationship     = new PhysicalAssetRelationship<>(MissionKeywords.REL_HAS_PATIENT,      "patient");
         involvesVehicleRelationship = new PhysicalAssetRelationship<>(MissionKeywords.REL_INVOLVES_VEHICLE, "vehicle");
         targetsHospitalRelationship = new PhysicalAssetRelationship<>(MissionKeywords.REL_TARGETS_HOSPITAL, "hospital");
@@ -107,13 +78,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         return pad;
     }
 
-    // ── Telemetry Ingestion ───────────────────────────────────────────────────
-
-    /**
-     * Punto di ingresso principale: riceve il payload aggregato dal
-     * MissionTwinManager e lo propaga alla ShadowingFunction tramite
-     * gli eventi WLDT sul bus interno.
-     */
     public void onMissionTelemetryReceived(MissionTelemetryPayload payload) {
         if (payload == null) return;
 
@@ -149,14 +113,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         }
     }
 
-    // ── Relationship Link API (chiamata dal MissionTwinManager) ──────────────
-
-    /**
-     * Crea la relazione has_patient verso il paziente.
-     * Idempotente: una volta pubblicata, non viene ri-pubblicata.
-     *
-     * @param patientId ID dell'agente paziente nella simulazione
-     */
     public void linkPatient(String patientId) {
         if (patientRelPublished || patientId == null || "null".equals(patientId)) return;
         if (hasPatientRelationship == null) return;
@@ -173,13 +129,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         }
     }
 
-    /**
-     * Aggiunge (o aggiorna) la relazione involves_vehicle verso un veicolo.
-     * Può essere chiamato più volte per veicoli diversi coinvolti nella stessa
-     * missione (ambulanza + MedCar, ecc.).
-     *
-     * @param vehicleId ID dell'agente veicolo nella simulazione
-     */
     public void linkVehicle(String vehicleId) {
         if (vehicleId == null || "null".equals(vehicleId)) return;
         if (involvesVehicleRelationship == null) return;
@@ -195,13 +144,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         }
     }
 
-    /**
-     * Crea la relazione targets_hospital verso l'ospedale di destinazione.
-     * Se viene chiamato con un nuovo hospitalId (rerouting), prima rimuove
-     * il link precedente tramite unlinkHospital.
-     *
-     * @param hospitalId ID dell'ospedale di destinazione
-     */
     public void linkHospital(String hospitalId) {
         if (hospitalId == null || "null".equals(hospitalId)) return;
         if (targetsHospitalRelationship == null) return;
@@ -218,19 +160,11 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
         }
     }
 
-    /**
-     * Rimuove la relazione targets_hospital verso un ospedale precedente.
-     * Usato dal MissionTwinManager quando rileva un cambio di destinazione
-     * (rerouting per deterioramento clinico).
-     *
-     * @param hospitalId ID dell'ospedale da scollegare
-     */
     public void unlinkHospital(String hospitalId) {
         if (hospitalId == null || "null".equals(hospitalId)) return;
         if (targetsHospitalRelationship == null) return;
 
         try {
-            // WLDT richiede un'istanza per poter pubblicare la deletion
             var instance = targetsHospitalRelationship.createRelationshipInstance(
                     "rel-hospital-" + hospitalId);
             publishPhysicalAssetRelationshipDeletedWldtEvent(
@@ -240,8 +174,6 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
             System.err.println("[MissionPhysicalAdapter] unlinkHospital error: " + e.getMessage());
         }
     }
-
-    // ── Domain Event Publishing ───────────────────────────────────────────────
 
     private void publishStateEvent(MissionTelemetryPayload payload) throws EventBusException {
         switch (payload.state()) {
@@ -272,11 +204,9 @@ public class MissionPhysicalAdapter extends ConfigurablePhysicalAdapter<MissionA
                 publishPhysicalAssetEventWldtEvent(
                         new PhysicalAssetEventWldtEvent<>(MissionKeywords.HANDOVER_COMPLETED_EVENT_KEY, payload));
 
-            default -> { /* STATE_TRIAGING: nessun evento preliminare */ }
+            default -> {}
         }
     }
-
-    // ── Incoming Digital Action (Reroute Hospital) ────────────────────────────
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> event) {

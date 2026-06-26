@@ -35,41 +35,11 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Digital Adapter della Centrale Operativa.
- *
- * BUG FIX LOG:
- * 1. KPI sempre a 0 — buildStateResponse() leggeva i KPI dallo stato WLDT con
- * chiavi
- * "central:kpi:*" che venivano aggiornate solo tramite onMissionCompleted()
- * nella
- * ShadowingFunction, ma quest'ultimo non veniva mai chiamato. Fix: i KPI
- * vengono
- * ora letti direttamente dalla CentralEmergencyShadowingFunction tramite i suoi
- * getter pubblici, e onMissionCompleted() viene invocato in
- * buildMissionsResponse()
- * quando viene intercettata una missione appena completata.
- *
- * 2. Carburante/proprietà veicoli resettati a 0 — il polling continuo
- * sovrascriveva
- * il valore precedente con 0.0 se lo stato del twin non era ancora pronto o se
- * il campo mancava nel JSON. Fix: aggiunto vehicleStateCache
- * (ConcurrentHashMap)
- * che mantiene l'ultimo ObjectNode valido per ogni veicolo, e
- * buildVehiclesResponse()
- * usa il valore in cache se il campo letto è 0.0/null e quello in cache è
- * valido.
- *
- * 3. Missioni perse dopo completamento — completedMissionsHistory già esisteva
- * ma
- * non veniva usato correttamente quando il twin veniva rimosso dal registry
- * prima del poll. Fix: le missioni vengono salvate in completedMissionsHistory
- * al momento della rilevazione e i KPI vengono aggiornati tramite
- * onMissionCompleted().
- */
 public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmergencyAdapterConfiguration> {
 
     private static final int PORT = 8080;
@@ -82,18 +52,10 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
     private MissionTwinManager missionManager;
     private VehicleTwinManager vehicleManager;
     private HospitalTwinManager hospitalManager;
-
-    // ── FIX #3: storico persistente delle missioni completate ─────────────────
     private final Map<String, ObjectNode> completedMissionsHistory = new ConcurrentHashMap<>();
-
-    // ── FIX #2: cache dell'ultimo stato valido dei veicoli ────────────────────
-    // Evita che un poll con stato temporaneamente non disponibile azzeri i valori.
     private final Map<String, ObjectNode> vehicleStateCache = new ConcurrentHashMap<>();
 
-    // ── FIX #1: set delle missioni di cui è già stato notificato il completamento
-    // ──
-    // Evita di chiamare onMissionCompleted() più volte per la stessa missione.
-    private final java.util.Set<String> kpiNotifiedMissions = java.util.Collections
+    private final Set<String> kpiNotifiedMissions = java.util.Collections
             .newSetFromMap(new ConcurrentHashMap<>());
 
     private volatile DigitalTwinState currentState = null;
@@ -341,8 +303,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
         sseSubscribers.removeAll(disconnected);
     }
 
-    // ── FIX #1: buildStateResponse() — KPI letti direttamente dalla
-    // ShadowingFunction ──
 
     private String buildStateResponse() throws Exception {
         ObjectNode root = mapper.createObjectNode();
@@ -359,7 +319,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
         int activeMissionsCount = missionManager != null ? missionManager.activeMissionCount() : 0;
         root.put("activeMissionsCount", activeMissionsCount);
 
-        // Calcolo parametri flotta real-time dai registri attivi
         int needingMaintenance = 0;
         int lowFuel = 0;
         int availableVehicles = 0;
@@ -390,9 +349,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
         root.put("vehiclesLowFuel", lowFuel);
         root.put("vehiclesAvailableCount", availableVehicles);
 
-        // ── FIX #1: leggi i KPI direttamente dalla ShadowingFunction ──────────
-        // Prima prova a usare la shadowingFunction iniettata; se non disponibile,
-        // fallback sui valori letti dallo stato WLDT (compatibilità backward).
         if (shadowingFunction != null) {
             shadowingFunction.onFleetSnapshot(needingMaintenance, lowFuel, activeMissionsCount, availableVehicles);
             double avgD09z = shadowingFunction.getAvgD09z();
@@ -409,8 +365,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
             root.put("underTriageCount", underTriage);
             root.put("triageTotalAssessed", totalAssessed);
         } else {
-            // Fallback: lettura dallo stato WLDT (valori potrebbero essere 0 se
-            // onMissionCompleted() non è stato chiamato)
             double avgD09z = readDoubleProperty(state, "central:kpi:avgD09zSeconds").orElse(0.0);
             int mCompleted = readIntProperty(state, "central:kpi:missionsCompleted").orElse(0);
             int overTriage = readIntProperty(state, "central:kpi:overTriageCount").orElse(0);
@@ -444,14 +398,11 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 DigitalTwinState state = twin.getShadowingFunction()
                         .getDigitalTwinStateManager().getDigitalTwinState();
                 if (state != null) {
-                    // Lettura con chiavi specifiche del log (Prefisso patient-)
                     readStringProperty(state, "patient-state-property-key").ifPresent(v -> node.put("state", v));
                     readStringProperty(state, "patient-severity-code-property-key")
                             .ifPresent(v -> node.put("severityCode", v));
                     readStringProperty(state, "patient-pathology-property-key")
                             .ifPresent(v -> node.put("pathology", v));
-
-                    // Lettura con chiavi standard (Keywords di fallback)
                     readStringProperty(state, MissionKeywords.PATIENT_ID_PROPERTY_KEY)
                             .ifPresent(v -> node.put("patientId", v));
                     readStringProperty(state, MissionKeywords.HOSPITAL_ID_PROPERTY_KEY)
@@ -468,30 +419,21 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                             .orElse(0.0);
                     double timeHandover = readDoubleProperty(state, MissionKeywords.TIME_HANDOVER_PROPERTY_KEY)
                             .orElse(0.0);
-
-                    // Calcolo D09Z (Tempo di allarme -> Arrivo sul posto)
                     if (timeOnScene > 0.0 && timeCalled > 0.0) {
                         node.put("kpiD09zSeconds", timeOnScene - timeCalled);
                     } else {
                         readDoubleProperty(state, MissionKeywords.KPI_D09Z_PROPERTY_KEY)
                                 .ifPresent(v -> node.put("kpiD09zSeconds", v));
                     }
-
-                    // Calcolo Durata Totale Missione (Tempo di allarme -> Consegna in Ospedale)
                     if (timeHandover > 0.0 && timeCalled > 0.0) {
                         node.put("kpiTotalDurationSeconds", timeHandover - timeCalled);
                     } else {
                         readDoubleProperty(state, MissionKeywords.KPI_TOTAL_DURATION_PROPERTY_KEY)
                                 .ifPresent(v -> node.put("kpiTotalDurationSeconds", v));
                     }
-                    // ─── FINE BLOCCO CALCOLO ROBUSTO DEI KPI TIMESTAMPS ───
-
                     readBooleanProperty(state, MissionKeywords.CLINICAL_DETERIORATED_PROPERTY_KEY)
                             .ifPresent(v -> node.put("clinicalDeteriorated", v));
                     String stateStr = node.has("state") ? node.get("state").asText() : "Triaging";
-
-                    // Se la missione è Completed, archiviarla e aggiornare i KPI statistici della
-                    // centrale
                     if ("Completed".equalsIgnoreCase(stateStr)) {
                         completedMissionsHistory.put(missionId, node.deepCopy());
 
@@ -516,8 +458,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                                     missionId, d09z, sevCode, confirmedSev);
                         }
                     }
-
-                    // Aggiunge alla lista delle missioni attive solo se NON è completata
                     if (!"Completed".equalsIgnoreCase(stateStr)) {
                         missioni.add(node);
                     }
@@ -531,9 +471,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 missioni.add(node);
             }
         }
-
-        // 2. Aggiunge tutte le missioni completate dallo storico persistente per la
-        // tabella
         for (ObjectNode completedNode : completedMissionsHistory.values()) {
             missioni.add(completedNode);
         }
@@ -574,13 +511,9 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
     }
 
     private void buildAmbulanceNode(DigitalTwinState state, ObjectNode node) {
-        // Se il valore nel Twin è presente e valido lo usiamo, altrimenti evitiamo di
-        // sovrascrivere con default errati
         readStringProperty(state, AmbulanceKeywords.STATE_PROPERTY_KEY).ifPresent(v -> node.put("state", v));
 
         readDoubleProperty(state, AmbulanceKeywords.FUEL_LEVEL_PROPERTY_KEY).ifPresent(v -> {
-            // Se il twin restituisce 0.0 ma sappiamo che il dato è protetto nella
-            // Shadowing, lo esponiamo direttamente
             node.put("fuelLevel", v);
         });
 
@@ -645,23 +578,17 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                         .getDigitalTwinStateManager().getDigitalTwinState();
 
                 if (state != null) {
-                    // Lettura del livello di assistenza (Standard)
                     readIntProperty(state, HospitalKeywords.ASSISTANCE_LEVEL_PROPERTY_KEY)
                             .ifPresent(v -> node.put("assistanceLevel", v));
-
-                    // ─── INIZIO ESTRAZIONE ADATTIVA DELLA CONTA PAZIENTI ───
                     int resolvedPatients = 0;
                     boolean foundPatients = false;
-
-                    // Scansione elastica per intercettare la chiave a prescindere dal namespace o
-                    // prefisso
                     for (it.wldt.core.state.DigitalTwinStateProperty<?> p : state.getPropertyList().get()) {
                         String pKey = p.getKey().toLowerCase();
                         if (pKey.contains("patient") || pKey.contains("assisted")) {
                             if (p.getValue() instanceof Number num) {
                                 resolvedPatients = num.intValue();
                                 foundPatients = true;
-                                break; // Trovato il contatore, possiamo uscire dal loop del twin
+                                break;
                             }
                         }
                     }
@@ -669,8 +596,6 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                     if (foundPatients) {
                         node.put("patientAssisted", resolvedPatients);
                     } else {
-                        // Fallback tradizionale nel caso in cui la scansione non trovasse
-                        // corrispondenze parziali
                         readIntProperty(state, HospitalKeywords.PATIENT_ASSISTED_PROPERTY_KEY)
                                 .ifPresent(v -> node.put("patientAssisted", v));
                     }
@@ -684,17 +609,15 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
         return mapper.writeValueAsString(hospitals);
     }
 
-    // ── Helpers di lettura type-safe ──────────────────────────────────────────
-
-    private java.util.Optional<String> readStringProperty(DigitalTwinState state, String key) {
+    private Optional<String> readStringProperty(DigitalTwinState state, String key) {
         try {
             return state.getProperty(key).map(p -> String.valueOf(p.getValue()));
         } catch (Exception e) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
     }
 
-    private java.util.Optional<Double> readDoubleProperty(DigitalTwinState state, String key) {
+    private Optional<Double> readDoubleProperty(DigitalTwinState state, String key) {
         try {
             return state.getProperty(key).map(p -> {
                 Object v = p.getValue();
@@ -709,11 +632,11 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 }
             });
         } catch (Exception e) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
     }
 
-    private java.util.Optional<Integer> readIntProperty(DigitalTwinState state, String key) {
+    private Optional<Integer> readIntProperty(DigitalTwinState state, String key) {
         try {
             return state.getProperty(key).map(p -> {
                 Object v = p.getValue();
@@ -728,11 +651,11 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 }
             });
         } catch (Exception e) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
     }
 
-    private java.util.Optional<Boolean> readBooleanProperty(DigitalTwinState state, String key) {
+    private Optional<Boolean> readBooleanProperty(DigitalTwinState state, String key) {
         try {
             return state.getProperty(key).map(p -> {
                 Object v = p.getValue();
@@ -741,7 +664,7 @@ public class CentralEmergencyDigitalAdapter extends DigitalAdapter<CentralEmerge
                 return Boolean.parseBoolean(String.valueOf(v));
             });
         } catch (Exception e) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
     }
 

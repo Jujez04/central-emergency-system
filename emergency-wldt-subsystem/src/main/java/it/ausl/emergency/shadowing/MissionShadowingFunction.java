@@ -14,12 +14,9 @@ import it.wldt.core.state.*;
 
 import java.util.Map;
 
-/**
- * Shadowing Function della Missione Corretta.
- */
+
 public class MissionShadowingFunction extends ShadowingFunction {
 
-    // Valori timestamp locali per il calcolo incrementale dei KPI
     private volatile double cachedTimeCalled = 0.0;
     private volatile double cachedTimeOnScene = 0.0;
     private volatile double cachedTimeHandover = 0.0;
@@ -54,8 +51,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
             this.digitalTwinStateManager.startStateTransaction();
 
             adaptersMap.values().forEach(pad -> {
-
-                // 1. Proprietà fisiche + proprietà augmented (KPI)
                 pad.getProperties().forEach(property -> {
                     try {
                         createDigitalTwinStateProperty(property);
@@ -66,8 +61,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
                         e.printStackTrace();
                     }
                 });
-
-                // 2. Domain Events
                 pad.getEvents().forEach(event -> {
                     try {
                         DigitalTwinStateEvent dtEvent = new DigitalTwinStateEvent(event.getKey(), event.getType());
@@ -79,11 +72,8 @@ public class MissionShadowingFunction extends ShadowingFunction {
                         e.printStackTrace();
                     }
                 });
-
-                // 3. CORREZIONE: Creazione della Relazione Semantica nello Stato Digitale
                 pad.getRelationships().forEach(rel -> {
                     try {
-                        // Creiamo la relazione strutturale nel DigitalTwinState prima di osservarla
                         DigitalTwinStateRelationship<String> dtStateRelationship = new DigitalTwinStateRelationship<>(
                                 rel.getName(), rel.getName());
                         this.digitalTwinStateManager.createRelationship(dtStateRelationship);
@@ -99,7 +89,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
                     }
                 });
 
-                // 4. Azioni
                 pad.getActions().forEach(action -> {
                     try {
                         DigitalTwinStateAction dtAction = new DigitalTwinStateAction(
@@ -131,8 +120,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {
     }
 
-    // ── Property Variation ────────────────────────────────────────────────────
-
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> event) {
         try {
@@ -140,21 +127,12 @@ public class MissionShadowingFunction extends ShadowingFunction {
             Object body = event.getBody();
 
             this.digitalTwinStateManager.startStateTransaction();
-
-            // 1. Aggiorna normalmente la proprietà sul Twin dello stato WLDT
             updateDigitalTwinStateProperty(propertyId, body);
-
-            // 2. Estrazione e normalizzazione adattiva dei timestamp
             if (body instanceof Number num) {
                 double val = num.doubleValue();
-
-                // Protezione nel caso in cui arrivassero millisecondi Unix reali
                 if (val > 1_000_000_000_000.0) {
                     val = val / 1000.0;
                 }
-
-                // Trasformiamo in minuscolo per fare un confronto elastico che ignora i
-                // prefissi
                 String lowKey = propertyId.toLowerCase();
 
                 if (lowKey.contains("called")) {
@@ -165,8 +143,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
                     recomputeKpis();
                 } else if (lowKey.contains("handover") || lowKey.contains("completed")
                         || lowKey.contains("timestamp")) {
-                    // Cattura sia la costante standard, sia il "timestamp" grezzo di fine missione
-                    // di AnyLogic
                     this.cachedTimeHandover = val;
                     recomputeKpis();
                 }
@@ -197,8 +173,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
         }
     }
 
-    // ── CORREZIONE: Relationship Lifecycle (Uso corretto di .getBody()) ──────
-
     @Override
     protected void onPhysicalAssetRelationshipEstablished(
             PhysicalAssetRelationshipInstanceCreatedWldtEvent<?> event) {
@@ -215,8 +189,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
 
             System.out.println("[MissionShadowingFunction] -> Relationship established: " + relName
                     + " | instance key: " + relKey + " | target DT: " + relTargetId);
-
-            // Creazione dell'istanza digitale corrispondente nello stato di WLDT
             DigitalTwinStateRelationshipInstance<String> dtStateRelInstance = new DigitalTwinStateRelationshipInstance<>(
                     relName, relTargetId, relKey);
 
@@ -234,7 +206,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAssetRelationshipDeleted(
             PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> event) {
         try {
-            // CORREZIONE: Estratto tramite .getBody() in simmetria con il metodo sopra
             if (event == null || event.getBody() == null)
                 return;
 
@@ -254,13 +225,9 @@ public class MissionShadowingFunction extends ShadowingFunction {
         }
     }
 
-    // ── Digital Action (Reroute Hospital) ─────────────────────────────────────
-
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> event) {
     }
-
-    // ── KPI Augmentation ──────────────────────────────────────────────────────
 
     private void recomputeKpis() throws Exception {
         double kpiD09z = (cachedTimeOnScene > 0.0 && cachedTimeCalled > 0.0) ? cachedTimeOnScene - cachedTimeCalled
@@ -276,8 +243,6 @@ public class MissionShadowingFunction extends ShadowingFunction {
         System.out.printf("[MissionShadowingFunction] -> KPIs updated | D09Z=%.1fs | TotalDuration=%.1fs%n", kpiD09z,
                 kpiTotal);
     }
-
-    // ── Type-safe Property Helpers ────────────────────────────────────────────
 
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();

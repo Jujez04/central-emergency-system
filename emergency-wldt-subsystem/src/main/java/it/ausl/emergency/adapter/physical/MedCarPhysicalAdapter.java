@@ -23,8 +23,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
         super(id, configuration);
     }
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
-
     @Override
     public void onAdapterStart() {
         try {
@@ -72,8 +70,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
                 MedCarKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, "application/json"));
         return pad;
     }
-
-    // ── Telemetry Ingestion ───────────────────────────────────────────────────
 
     public void onMedCarJsonTelemetryReceived(String jsonPayload) {
         try {

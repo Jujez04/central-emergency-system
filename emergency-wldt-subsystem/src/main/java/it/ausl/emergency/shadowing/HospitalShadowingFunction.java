@@ -15,21 +15,11 @@ import it.wldt.core.state.DigitalTwinStateProperty;
 
 import java.util.Map;
 
-/**
- * Shadowing Function dell'Ospedale.
- * Traduce lo stato dell'infrastruttura ospedaliera della simulazione AnyLogic
- * nello stato del Digital Twin esposto verso l'esterno.
- * * Caratteristiche:
- * - Gestisce l'allineamento dei tipi primitivi (Integer per i livelli e i pazienti assistiti, Double per il tempo)
- * - Nessuna azione digitale e nessuna relazione (struttura passiva di ricovero flotta)
- */
 public class HospitalShadowingFunction extends ShadowingFunction {
 
     public HospitalShadowingFunction(String id) {
         super(id);
     }
-
-    // Lifecycle Callbacks
 
     @Override
     protected void onCreate() {
@@ -42,8 +32,6 @@ public class HospitalShadowingFunction extends ShadowingFunction {
     @Override
     protected void onStop() {
     }
-
-    // Bound Lifecycle State Management Callbacks
 
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
@@ -97,8 +85,6 @@ public class HospitalShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAdapterBidingUpdate(String id, PhysicalAssetDescription pad) {
     }
 
-    // Inbound Telemetry Callbacks
-
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
         try {
@@ -136,8 +122,6 @@ public class HospitalShadowingFunction extends ShadowingFunction {
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> digitalActionWldtEvent) {
     }
-
-    // Structural Helper Methods
 
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();

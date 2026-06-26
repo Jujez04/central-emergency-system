@@ -9,12 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Factory e registry dei Digital Twin dell'Ospedale.
- *
- * Espone getRegistry() per permettere al CentralEmergencyDigitalAdapter
- * di costruire snapshot aggregati via REST.
- */
+
 public class HospitalTwinManager {
 
     private final DigitalTwinEngine engine;

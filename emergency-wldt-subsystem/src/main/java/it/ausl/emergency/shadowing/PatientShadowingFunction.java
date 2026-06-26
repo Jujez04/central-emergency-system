@@ -36,8 +36,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     protected void onStop() {
     }
 
-    //// Bound LifeCycle State Management Callbacks ////
-
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
         try {
@@ -95,8 +93,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     protected void onPhysicalAdapterBidingUpdate(String adapterId, PhysicalAssetDescription physicalAssetDescription) {
     }
 
-    //// Physical Property Variation Callback ////
-
     @Override
     protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?> physicalAssetPropertyWldtEvent) {
 
@@ -112,8 +108,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
             e.printStackTrace();
         }
     }
-
-    //// Physical Event Notification Callback ////
 
     @Override
     protected void onPhysicalAssetEventNotification(PhysicalAssetEventWldtEvent<?> physicalAssetEventWldtEvent) {
@@ -141,8 +135,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     @Override
     protected void onDigitalActionEvent(DigitalActionWldtEvent<?> digitalActionWldtEvent) {
     }
-
-    //// Helper Methods ////
 
     /**
      */

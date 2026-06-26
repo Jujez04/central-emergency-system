@@ -39,8 +39,6 @@ public class AmbulanceShadowingFunction extends ShadowingFunction {
     protected void onStop() {
     }
 
-    // ── Bound Initialization ─────────────────────────────────────────────────
-
     @Override
     protected void onDigitalTwinBound(Map<String, PhysicalAssetDescription> adaptersPhysicalAssetDescriptionMap) {
         try {
@@ -125,8 +123,6 @@ protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?
         }
     }
 
-    // Closed-Loop Control Actuation Callback
-
     /**
      * Catches digital actions (e.g., routing optimization decisions) from the
      * digital layer,
@@ -158,8 +154,6 @@ protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?
     protected void onPhysicalAssetRelationshipDeleted(PhysicalAssetRelationshipInstanceDeletedWldtEvent<?> e) {
     }
 
-    // ── Structural Helper Methods ───────────────────────────────────────────
-
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();
         if (val instanceof Double) {
@@ -178,57 +172,31 @@ protected void onPhysicalAssetPropertyVariation(PhysicalAssetPropertyWldtEvent<?
     }
 
     private void updateDigitalTwinStateProperty(String key, Object val) throws Exception {
-        // 1. Clausola di salvaguardia: se il valore è totalmente null, non sovrascrivere il vecchio stato
         if (val == null) {
             return;
         }
-
-        // 2. Recuperiamo l'ultimo stato valido memorizzato nel Digital Twin (Memoria Storica)
         java.util.Optional<DigitalTwinStateProperty<?>> existingProperty = 
                 this.digitalTwinStateManager.getDigitalTwinState().getProperty(key);
-
-        // ── Gestione dei Numeri decimali (Double: es. Carburante, Distanza) ─────────────────
         if (val instanceof Double) {
             Double newDoubleVal = (Double) val;
-            
-            // Se il polling manda 0.0 su proprietà critiche (come il carburante), 
-            // verifichiamo se c'è un valore storico precedente da preservare
             if (newDoubleVal == 0.0 && existingProperty.isPresent()) {
                 if (key.contains("fuelLevel") || key.contains("maintenance")) {
-                    // Saltiamo l'aggiornamento mantenendo l'ultimo dato valido conosciuto
                     return; 
                 }
             }
             this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, newDoubleVal));
-
-        // ── Gestione degli Interi (Integer: es. Missioni eseguite) ──────────────────────────
         } else if (val instanceof Integer) {
             Integer newIntVal = (Integer) val;
-            
-            // Evita l'azzeramento involontario dei contatori numerici causato da payload parziali
             if (newIntVal == 0 && existingProperty.isPresent() && key.contains("Count")) {
                 return;
             }
             this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, newIntVal));
-
-        // ── Gestione dei Booleani (Boolean: es. needsMaintenance) ───────────────────────────
         } else if (val instanceof Boolean) {
-            // I booleani primitivi di AnyLogic possono defaultare a 'false'.
-            // Se nel tuo sistema un 'false' rischia di cancellare un 'true' di allarme manutenzione:
             Boolean newBoolVal = (Boolean) val;
-            if (!newBoolVal && existingProperty.isPresent() && key.contains("needs")) {
-                // Logica custom opzionale: se prima serviva manutenzione (true) e il polling manda false per errore, ignora.
-                // Sbloccalo solo se AnyLogic gestisce esplicitamente la risoluzione del problema.
-            }
             this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, newBoolVal));
-
-        // ── Gestione delle Stringhe (String: es. Stato Logistico, Paziente Associato) ────────
         } else if (val instanceof String) {
             String newStringVal = (String) val;
-            
-            // Se la stringa è vuota o indica un valore nullo testuale ("null") inviato dalla simulazione
             if ((newStringVal.isEmpty() || "null".equalsIgnoreCase(newStringVal)) && existingProperty.isPresent()) {
-                // Manteniamo lo stato logistico precedente (es. se era DISPATCHED non deve tornare vuoto)
                 return;
             }
             this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(key, newStringVal));

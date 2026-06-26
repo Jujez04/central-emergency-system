@@ -40,38 +40,17 @@ public class VehicleTwinManager {
         }
 
         try {
-
             DigitalTwin twin;
-
             switch (type.toLowerCase()) {
-
                 case "ambulance":
-
-                    twin = new AmbulanceDigitalTwin(
-                            "dt-" + agentId,
-                            new AmbulanceShadowingFunction(
-                                    "ambulance-shadowing-" + agentId));
-
+                    twin = new AmbulanceDigitalTwin("dt-" + agentId,new AmbulanceShadowingFunction("ambulance-shadowing-" + agentId));
                     break;
-
                 case "medcar":
-
-                    twin = new MedCarDigitalTwin(
-                            "dt-" + agentId,
-                            new MedCarShadowingFunction(
-                                    "medcar-shadowing-" + agentId));
-
+                    twin = new MedCarDigitalTwin("dt-" + agentId, new MedCarShadowingFunction("medcar-shadowing-" + agentId));
                     break;
-
                 case "medhelicopter":
-
-                    twin = new MedHelicopterDigitalTwin(
-                            "dt-" + agentId,
-                            new MedHelicopterShadowingFunction(
-                                    "helicopter-shadowing-" + agentId));
-
+                    twin = new MedHelicopterDigitalTwin("dt-" + agentId,new MedHelicopterShadowingFunction("helicopter-shadowing-" + agentId));
                     break;
-
                 default:
                     return;
             }
@@ -92,9 +71,6 @@ public class VehicleTwinManager {
         if (twin instanceof AmbulanceDigitalTwin ambulanceTwin) {
             ambulanceTwin.getPhysicalAdapter().onAmbulanceTelemetryReceived(payload);
         }
-
-        // ─── CORREZIONE: Invocazione del metodo corretto per aggiornare i KPI
-        // temporali ───
         if (payload.hasPatient()) {
             missionManager.onVehicleTelemetryUpdate(vehicleId, payload);
         }
@@ -107,8 +83,6 @@ public class VehicleTwinManager {
             medCarTwin.getPhysicalAdapter().onMedCarTelemetryReceived(payload);
         }
 
-        // ─── CORREZIONE: Convertiamo in payload compatibile ed eseguiamo l'update
-        // temporale ───
         if (payload.hasPatient()) {
             AmbulanceTelemetryPayload compatPayload = new AmbulanceTelemetryPayload(
                     payload.state(), payload.lat(), payload.lon(), payload.patientId(),

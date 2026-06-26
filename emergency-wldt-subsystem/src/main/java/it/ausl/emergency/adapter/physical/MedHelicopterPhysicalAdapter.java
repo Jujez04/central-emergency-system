@@ -43,9 +43,6 @@ public class MedHelicopterPhysicalAdapter
 
     private PhysicalAssetDescription buildPhysicalAssetDescription() {
         PhysicalAssetDescription pad = new PhysicalAssetDescription();
-
-        // Properties — specchio 1:1 dei campi di MedHelicopterTelemetryPayload
-        // più homeBase (configurato staticamente, non presente nel payload MQTT)
         pad.getProperties().add(new PhysicalAssetProperty<>(
                 MedHelicopterKeywords.STATE_PROPERTY_KEY,
                 getConfiguration().getDefaultState()));
@@ -86,12 +83,8 @@ public class MedHelicopterPhysicalAdapter
                 MedHelicopterKeywords.CRITICAL_FUEL_EVENT_KEY,        "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(
                 MedHelicopterKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, "application/json"));
-
-        // Nessuna azione: il MedHelicopter non riceve comandi di redirect
         return pad;
     }
-
-    // ── Telemetry Ingestion ───────────────────────────────────────────────────
 
     /**
      * Entry point per payload JSON grezzi (es. da un client MQTT reale).
@@ -106,10 +99,6 @@ public class MedHelicopterPhysicalAdapter
         }
     }
 
-    /**
-     * Entry point principale: riceve un payload già deserializzato
-     * (usato direttamente nei test JUnit).
-     */
     public void onMedHelicopterTelemetryReceived(MedHelicopterTelemetryPayload payload) {
         if (payload == null) return;
 
@@ -148,9 +137,6 @@ public class MedHelicopterPhysicalAdapter
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     MedHelicopterKeywords.TRIP_DISTANCE_PROPERTY_KEY,
                     payload.tripDistanceSinceEmergency()));
-
-            // Domain Events
-
             if (payload.fuelLevel() < MedHelicopterKeywords.CRITICAL_FUEL_THRESHOLD
                     && (lastTelemetry == null
                         || lastTelemetry.fuelLevel() >= MedHelicopterKeywords.CRITICAL_FUEL_THRESHOLD)) {
@@ -170,8 +156,6 @@ public class MedHelicopterPhysicalAdapter
             System.err.println("[MedHelicopterPhysicalAdapter] EventBus error: " + e.getMessage());
         }
     }
-
-    // ── Action (no-op) ────────────────────────────────────────────────────────
 
     @Override
     public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> event) {

@@ -133,19 +133,7 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
         }
     }
 
-    /**
-     * Aggiorna i KPI di flotta ogniqualvolta una proprietà di un veicolo varia.
-     * Nota: la Centrale Operativa non osserva direttamente i twin dei veicoli;
-     * questi KPI vengono invece aggiornati tramite l'evento di dominio
-     * OVERLOAD_RISK o tramite polling nel digital adapter.
-     *
-     * Per aggiornare i KPI di flotta in modo preciso, il metodo esposto
-     * {@link #onFleetSnapshot(int, int, int, int)} deve essere chiamato
-     * dal CentralEmergencyDigitalAdapter dopo ogni polling.
-     */
     private void updateFleetKpisIfVehicleProperty(String propId, Object val) throws Exception {
-        // Questo metodo è un hook per future estensioni dirette.
-        // I KPI di flotta vengono aggiornati principalmente tramite onFleetSnapshot().
     }
 
     @Override
@@ -210,17 +198,6 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
                 new DigitalTwinStateProperty<>(CentralEmergencyKeywords.KPI_TRIAGE_TOTAL_ASSESSED, 0));
     }
 
-    // ── API pubblica: aggiornamento KPI da parte del DigitalAdapter ───────────
-
-    /**
-     * Chiamato dal CentralEmergencyDigitalAdapter dopo ogni polling sulla flotta.
-     * Aggiorna atomicamente i KPI di flotta e saturazione nello stato digitale.
-     *
-     * @param needingMaintenance numero di veicoli con needsMaintenance=true
-     * @param lowFuel            numero di veicoli con fuelLevel < 0.20
-     * @param activeMissCount    numero di missioni attive al momento del polling
-     * @param availableVehicles  numero di veicoli non in missione (state=atRest)
-     */
     public synchronized void onFleetSnapshot(int needingMaintenance, int lowFuel,
             int activeMissCount, int availableVehicles) {
         this.vehiclesNeedingMaintenance.set(needingMaintenance);
@@ -248,16 +225,6 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
         }
     }
 
-    /**
-     * Chiamato dal CentralEmergencyDigitalAdapter quando una missione raggiunge
-     * lo stato COMPLETED. Aggiorna i KPI D09Z, triage accuracy in modo
-     * incrementale.
-     *
-     * @param d09zSeconds       KPI D09Z della missione appena completata (in
-     *                          secondi)
-     * @param severityCode      codice colore assegnato in fase di triage telefonico
-     * @param confirmedSeverity codice colore confermato sul campo dall'equipaggio
-     */
     public synchronized void onMissionCompleted(double d09zSeconds,
             String severityCode,
             String confirmedSeverity) {
@@ -266,15 +233,12 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
 
         try {
             this.digitalTwinStateManager.startStateTransaction();
-            // Aggiorna subito il contatore sulla dashboard (mostrerà "29 completate")
             this.digitalTwinStateManager.updateProperty(
                     new DigitalTwinStateProperty<>(CentralEmergencyKeywords.KPI_MISSIONS_COMPLETED, completed));
-
-            // 2. Calcoliamo il D09Z medio SOLO se il valore ricevuto è valido
             if (d09zSeconds > 0.0) {
                 d09zSum += d09zSeconds;
-                int samples = d09zSamples.incrementAndGet(); // Incrementa solo i campioni reali
-                double avg = d09zSum / samples; // Dividi per i campioni validi, non sul totale delle missioni
+                int samples = d09zSamples.incrementAndGet();
+                double avg = d09zSum / samples;
 
                 this.digitalTwinStateManager.updateProperty(
                         new DigitalTwinStateProperty<>(CentralEmergencyKeywords.KPI_AVG_D09Z, avg));
@@ -286,8 +250,6 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
                     "[CentralEmergencyShadowingFunction] Errore aggiornamento KPI completate/D09Z: " + e.getMessage());
         }
 
-        // ── Triage accuracy ───────────────────────────────────────────────────
-        // Solo se entrambe le severità sono valorizzate e confrontabili
         boolean validTriage = severityRank(severityCode) >= 0;
         boolean validConfirmedTriage = confirmedSeverity != null
                 && !"null".equalsIgnoreCase(confirmedSeverity)
@@ -302,10 +264,8 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
             int under = underTriageCount.get();
 
             if (rankTriage > rankConfirmed) {
-                // Over-triage: paziente classificato più grave del reale
                 over = overTriageCount.incrementAndGet();
             } else if (rankTriage < rankConfirmed) {
-                // Under-triage: paziente classificato meno grave del reale
                 under = underTriageCount.incrementAndGet();
             }
 
@@ -327,8 +287,6 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
             }
         }
     }
-
-    // ── Lettura snapshot KPI (usata dal DigitalAdapter per le GET REST) ───────
 
     public double getAvgD09z() {
         return d09zSamples.get() > 0 ? d09zSum / d09zSamples.get() : 0.0;
@@ -363,8 +321,6 @@ public class CentralEmergencyShadowingFunction extends ShadowingFunction {
     public int getTriageTotalAssessed() {
         return triageTotalAssessed.get();
     }
-
-    // ── Helper ────────────────────────────────────────────────────────────────
 
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
         Object val = property.getInitialValue();
