@@ -758,7 +758,7 @@ for (MedHelicopter h : medHelicopters) {
 				<Variable Class="CollectionVariable">
 					<Id>1778072959258</Id>
 					<Name><![CDATA[stationaryPointsCollection]]></Name>
-					<X>-160</X><Y>620</Y>
+					<X>-250</X><Y>620</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -776,7 +776,7 @@ for (MedHelicopter h : medHelicopters) {
 				<Variable Class="CollectionVariable">
 					<Id>1778073333009</Id>
 					<Name><![CDATA[ambulancesCollection]]></Name>
-					<X>-340</X><Y>620</Y>
+					<X>-430</X><Y>620</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -809,7 +809,7 @@ for (MedHelicopter h : medHelicopters) {
 				<Variable Class="CollectionVariable">
 					<Id>1778086111537</Id>
 					<Name><![CDATA[medCarsCollection]]></Name>
-					<X>-530</X><Y>620</Y>
+					<X>-620</X><Y>620</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1246,7 +1246,7 @@ if(isWeatherSafeForFlight == false) {
     			<HistogramData>
 					<Id>1776521823402</Id>
 					<Name><![CDATA[responseTimeData]]></Name>
-					<X>20</X><Y>640</Y>
+					<X>-570</X><Y>480</Y>
 					<Label><X>15</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1279,8 +1279,8 @@ if(isWeatherSafeForFlight == false) {
 				</HistogramData>
     			<HistogramData>
 					<Id>1776524701616</Id>
-					<Name><![CDATA[totalPreHTimeData]]></Name>
-					<X>20</X><Y>680</Y>
+					<Name><![CDATA[totalTimeData]]></Name>
+					<X>-570</X><Y>510</Y>
 					<Label><X>15</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1338,7 +1338,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1776410396074</Id>
 					<Name><![CDATA[patients]]></Name>
-					<X>-180</X><Y>460</Y>
+					<X>-380</X><Y>240</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1386,7 +1386,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1776441539694</Id>
 					<Name><![CDATA[medHelicopters]]></Name>
-					<X>-180</X><Y>420</Y>
+					<X>-380</X><Y>200</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1494,7 +1494,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1776926714889</Id>
 					<Name><![CDATA[operator]]></Name>
-					<X>-180</X><Y>440</Y>
+					<X>-380</X><Y>220</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1872,7 +1872,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778071930059</Id>
 					<Name><![CDATA[ambulances2]]></Name>
-					<X>-320</X><Y>680</Y>
+					<X>-410</X><Y>680</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1921,7 +1921,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778072185567</Id>
 					<Name><![CDATA[ambulances3]]></Name>
-					<X>-320</X><Y>700</Y>
+					<X>-410</X><Y>700</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -1970,7 +1970,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082385797</Id>
 					<Name><![CDATA[stationaryPoint2]]></Name>
-					<X>-160</X><Y>680</Y>
+					<X>-250</X><Y>680</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2018,7 +2018,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082411685</Id>
 					<Name><![CDATA[stationaryPoint3]]></Name>
-					<X>-160</X><Y>700</Y>
+					<X>-250</X><Y>700</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2066,7 +2066,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082420632</Id>
 					<Name><![CDATA[stationaryPoint4]]></Name>
-					<X>-160</X><Y>720</Y>
+					<X>-250</X><Y>720</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2114,7 +2114,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082430327</Id>
 					<Name><![CDATA[stationaryPoint5]]></Name>
-					<X>-160</X><Y>740</Y>
+					<X>-250</X><Y>740</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2162,7 +2162,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082439306</Id>
 					<Name><![CDATA[stationaryPoint6]]></Name>
-					<X>-160</X><Y>760</Y>
+					<X>-250</X><Y>760</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2210,7 +2210,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082449886</Id>
 					<Name><![CDATA[stationaryPoint7]]></Name>
-					<X>-160</X><Y>780</Y>
+					<X>-250</X><Y>780</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2258,7 +2258,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082468870</Id>
 					<Name><![CDATA[stationaryPoint8]]></Name>
-					<X>-160</X><Y>800</Y>
+					<X>-250</X><Y>800</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2306,7 +2306,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082486216</Id>
 					<Name><![CDATA[stationaryPoint9]]></Name>
-					<X>-160</X><Y>820</Y>
+					<X>-250</X><Y>820</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2354,7 +2354,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082495575</Id>
 					<Name><![CDATA[stationaryPoint10]]></Name>
-					<X>-160</X><Y>840</Y>
+					<X>-250</X><Y>840</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2402,7 +2402,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082503815</Id>
 					<Name><![CDATA[stationaryPoint11]]></Name>
-					<X>-160</X><Y>860</Y>
+					<X>-250</X><Y>860</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2450,7 +2450,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082513562</Id>
 					<Name><![CDATA[stationaryPoint12]]></Name>
-					<X>-160</X><Y>880</Y>
+					<X>-250</X><Y>880</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2498,7 +2498,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082521603</Id>
 					<Name><![CDATA[stationaryPoint13]]></Name>
-					<X>-160</X><Y>900</Y>
+					<X>-250</X><Y>900</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2546,7 +2546,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778082528973</Id>
 					<Name><![CDATA[stationaryPoint14]]></Name>
-					<X>-160</X><Y>920</Y>
+					<X>-250</X><Y>920</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2594,7 +2594,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083296770</Id>
 					<Name><![CDATA[ambulances4]]></Name>
-					<X>-320</X><Y>720</Y>
+					<X>-410</X><Y>720</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2643,7 +2643,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083305625</Id>
 					<Name><![CDATA[ambulances5]]></Name>
-					<X>-320</X><Y>740</Y>
+					<X>-410</X><Y>740</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2692,7 +2692,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083316797</Id>
 					<Name><![CDATA[ambulances6]]></Name>
-					<X>-320</X><Y>760</Y>
+					<X>-410</X><Y>760</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2741,7 +2741,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083327733</Id>
 					<Name><![CDATA[ambulances7]]></Name>
-					<X>-320</X><Y>780</Y>
+					<X>-410</X><Y>780</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>false</PresentationFlag>
@@ -2790,7 +2790,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083338615</Id>
 					<Name><![CDATA[ambulances8]]></Name>
-					<X>-320</X><Y>800</Y>
+					<X>-410</X><Y>800</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2839,7 +2839,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083346567</Id>
 					<Name><![CDATA[ambulances9]]></Name>
-					<X>-320</X><Y>820</Y>
+					<X>-410</X><Y>820</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2888,7 +2888,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083355616</Id>
 					<Name><![CDATA[ambulances10]]></Name>
-					<X>-320</X><Y>840</Y>
+					<X>-410</X><Y>840</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2937,7 +2937,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083364484</Id>
 					<Name><![CDATA[ambulances11]]></Name>
-					<X>-320</X><Y>860</Y>
+					<X>-410</X><Y>860</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -2986,7 +2986,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083375073</Id>
 					<Name><![CDATA[ambulances12]]></Name>
-					<X>-320</X><Y>880</Y>
+					<X>-410</X><Y>880</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3035,7 +3035,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083383878</Id>
 					<Name><![CDATA[ambulances13]]></Name>
-					<X>-320</X><Y>900</Y>
+					<X>-410</X><Y>900</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3084,7 +3084,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778083392120</Id>
 					<Name><![CDATA[ambulances14]]></Name>
-					<X>-320</X><Y>920</Y>
+					<X>-410</X><Y>920</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3133,7 +3133,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778084115648</Id>
 					<Name><![CDATA[stationaryPoint1]]></Name>
-					<X>-160</X><Y>660</Y>
+					<X>-250</X><Y>660</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3181,7 +3181,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778084996001</Id>
 					<Name><![CDATA[ambulances1]]></Name>
-					<X>-320</X><Y>660</Y>
+					<X>-410</X><Y>660</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3230,7 +3230,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778086004305</Id>
 					<Name><![CDATA[medCars1]]></Name>
-					<X>-470</X><Y>660</Y>
+					<X>-560</X><Y>660</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3283,7 +3283,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778086031825</Id>
 					<Name><![CDATA[medCars2]]></Name>
-					<X>-470</X><Y>680</Y>
+					<X>-560</X><Y>680</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3336,7 +3336,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778086135228</Id>
 					<Name><![CDATA[medCars3]]></Name>
-					<X>-470</X><Y>700</Y>
+					<X>-560</X><Y>700</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3389,7 +3389,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778086146578</Id>
 					<Name><![CDATA[medCars4]]></Name>
-					<X>-470</X><Y>720</Y>
+					<X>-560</X><Y>720</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3442,7 +3442,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778086173492</Id>
 					<Name><![CDATA[medCars5]]></Name>
-					<X>-470</X><Y>740</Y>
+					<X>-560</X><Y>740</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -3495,7 +3495,7 @@ if(isWeatherSafeForFlight == false) {
 				<EmbeddedObject>
 					<Id>1778499092576</Id>
 					<Name><![CDATA[stationaryPointHelicopter]]></Name>
-					<X>-160</X><Y>940</Y>
+					<X>-250</X><Y>940</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -4328,14 +4328,14 @@ if(isWeatherSafeForFlight == false) {
 					</HistogramDataExpression>
 					<HistogramDataExpression>
 					<Id>1776524733221</Id>
-					<Expression><![CDATA[totalPreHTimeData]]></Expression>
+					<Expression><![CDATA[totalTimeData]]></Expression>
 						<ColorPDF>-60269</ColorPDF>
 						<ColorCDF>-12799119</ColorCDF>
 						<ColorLowPercent>-9404272</ColorLowPercent>
 						<ColorHighPercent>-29696</ColorHighPercent>
 						<ColorMean>-2448096</ColorMean>
 						<LineWidth>1</LineWidth>
-						<Title><![CDATA[Total PreH Time]]></Title>
+						<Title><![CDATA[Total Time]]></Title>
 					</HistogramDataExpression>
     			</Histogram>
 			</Presentation>
@@ -5570,8 +5570,8 @@ targetPatient = (Patient) msg;]]></Action>
     ? targetPatient.confirmedSeverityCode 
     : targetPatient.severityCode;
     
-if (effective == SeverityCode.RED || targetPatient.gcsScore <= main.gcsThreshold) {
-    this.targetHospital = main.hospitalCesena;  // Hub
+if (effective == SeverityCode.RED && targetPatient.pathology == FHQPathology.SEVERE_TRAUMA) {
+    this.targetHospital = main.hospitalsCollection.stream().filter(h -> h.assistanceLevel == 2).findAny().get();
 } else {
     this.targetHospital = getNearestAgent(main.hospitalsCollection);
 }]]></Action>
@@ -6122,7 +6122,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1776356209235</Id>
 					<Name><![CDATA[targetPatient]]></Name>
-					<X>-200</X><Y>30</Y>
+					<X>-200</X><Y>70</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6137,7 +6137,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1778661525197</Id>
 					<Name><![CDATA[targetHospital]]></Name>
-					<X>-200</X><Y>60</Y>
+					<X>-200</X><Y>100</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6152,7 +6152,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1778661582922</Id>
 					<Name><![CDATA[homeBase]]></Name>
-					<X>-200</X><Y>90</Y>
+					<X>-200</X><Y>130</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6164,7 +6164,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1780841194387</Id>
 					<Name><![CDATA[agentId]]></Name>
-					<X>-200</X><Y>120</Y>
+					<X>-200</X><Y>160</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6179,7 +6179,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597375</Id>
 					<Name><![CDATA[fuelLevel]]></Name>
-					<X>-200</X><Y>180</Y>
+					<X>-200</X><Y>190</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6194,7 +6194,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597379</Id>
 					<Name><![CDATA[missionsSinceMaintenance]]></Name>
-					<X>-200</X><Y>210</Y>
+					<X>-200</X><Y>220</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6209,7 +6209,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597381</Id>
 					<Name><![CDATA[maintanceThreshold]]></Name>
-					<X>-200</X><Y>240</Y>
+					<X>-200</X><Y>250</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6224,7 +6224,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597383</Id>
 					<Name><![CDATA[tripDistance]]></Name>
-					<X>-200</X><Y>270</Y>
+					<X>-200</X><Y>280</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6239,7 +6239,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597385</Id>
 					<Name><![CDATA[needsRefueling]]></Name>
-					<X>-200</X><Y>300</Y>
+					<X>-200</X><Y>310</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6254,7 +6254,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597387</Id>
 					<Name><![CDATA[needsMaintenance]]></Name>
-					<X>-200</X><Y>330</Y>
+					<X>-200</X><Y>340</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6269,7 +6269,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				<Variable Class="PlainVariable">
 					<Id>1781423597389</Id>
 					<Name><![CDATA[maintenanceThreshold]]></Name>
-					<X>-200</X><Y>360</Y>
+					<X>-200</X><Y>370</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6490,8 +6490,8 @@ this.needsMaintenance = false;]]></ExitAction>
     ? targetPatient.confirmedSeverityCode 
     : targetPatient.severityCode;
     
-if (effective == SeverityCode.RED || targetPatient.gcsScore <= main.gcsThreshold) {
-    this.targetHospital = main.hospitalCesena;  // Hub
+if (effective == SeverityCode.RED && targetPatient.pathology == FHQPathology.SEVERE_TRAUMA) {
+    this.targetHospital = main.hospitalsCollection.stream().filter(h -> h.assistanceLevel == 2).findAny().get();
 } else {
     this.targetHospital = getNearestAgent(main.hospitalsCollection);
 }
@@ -6830,7 +6830,7 @@ traceln("Helicopter moving to " + targetHospital);]]></Action>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1781424709683</Id>
 					<Name><![CDATA[getSanitizationTime]]></Name>
-					<X>-200</X><Y>390</Y>
+					<X>-200</X><Y>400</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -6851,7 +6851,7 @@ return uniform(300, 600);]]></Body>
 					<ReturnType><![CDATA[double]]></ReturnType>
 					<Id>1781972435778</Id>
 					<Name><![CDATA[sendStatus]]></Name>
-					<X>-200</X><Y>420</Y>
+					<X>-200</X><Y>430</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
 					<PresentationFlag>true</PresentationFlag>
@@ -7102,18 +7102,6 @@ main.sendMqttMessage(topic, payload);]]></Body>
 					</Properties>
 				</Variable>
 				<Variable Class="PlainVariable">
-					<Id>1776524666239</Id>
-					<Name><![CDATA[totalTime]]></Name>
-					<X>-190</X><Y>190</Y>
-					<Label><X>10</X><Y>0</Y></Label>
-					<PublicFlag>false</PublicFlag>
-					<PresentationFlag>true</PresentationFlag>
-					<ShowLabel>true</ShowLabel>
-					<Properties SaveInSnapshot="true" Constant="false" AccessType="public" StaticVariable="false">
-						<Type><![CDATA[double]]></Type>        
-					</Properties>
-				</Variable>
-				<Variable Class="PlainVariable">
 					<Id>1778227040167</Id>
 					<Name><![CDATA[medicalAssisted]]></Name>
 					<X>-190</X><Y>220</Y>
@@ -7250,7 +7238,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 				</Variable>
 				<Variable Class="PlainVariable">
 					<Id>1781336614063</Id>
-					<Name><![CDATA[totalPreHTime]]></Name>
+					<Name><![CDATA[totalTime]]></Name>
 					<X>-190</X><Y>400</Y>
 					<Label><X>10</X><Y>0</Y></Label>
 					<PublicFlag>false</PublicFlag>
@@ -7366,8 +7354,8 @@ this.sendPatientStateUpdate();]]></EntryAction>
 					<PresentationFlag>true</PresentationFlag>
 					<ShowLabel>true</ShowLabel>
 					<Properties Width="100" Height="30">
-						<EntryAction><![CDATA[totalPreHTime = (time() - timeCalled) / 60.0;
-main.totalPreHTimeData.add(totalPreHTime);
+						<EntryAction><![CDATA[totalTime = (time() - timeCalled) / 60.0;
+main.totalTimeData.add(totalTime);
 this.sendPatientStateUpdate();]]></EntryAction>
 						<FillColor>-10496</FillColor>
 					</Properties>
@@ -7471,7 +7459,7 @@ this.sendPatientStateUpdate();]]></EntryAction>
 					<IconOffset>20.0</IconOffset>
 					<Properties Source="1776443384050" Target="1776443401945" Trigger="message">
 						<Action><![CDATA[double totalTime = (time() - timeCalled) / 60.0; 
-main.totalPreHTimeData.add(totalTime);]]></Action>
+main.totalTimeData.add(totalTime);]]></Action>
 						<Timeout Class="CodeUnitValue">
 							<Code><![CDATA[1]]></Code>
 							<Unit Class="TimeUnits"><![CDATA[SECOND]]></Unit>
@@ -10033,7 +10021,7 @@ main.sendMqttMessage(topic, payload);]]></Body>
 			<MaximumMemory>2048</MaximumMemory>
 			<RandomNumberGenerationType>fixedSeed</RandomNumberGenerationType>
 			<CustomGeneratorCode>new Random()</CustomGeneratorCode>
-			<AfterSimulationRunCode><![CDATA[results.add(root.operativeAmbulances, root.totalPreHTimeData.mean());]]></AfterSimulationRunCode>
+			<AfterSimulationRunCode><![CDATA[results.add(root.operativeAmbulances, root.totalTimeData.mean());]]></AfterSimulationRunCode>
 			<SeedValue>1</SeedValue>
 			<SelectionModeForSimultaneousEvents>LIFO</SelectionModeForSimultaneousEvents>
 			<VmArgs><![CDATA[]]></VmArgs>

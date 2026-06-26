@@ -35,6 +35,11 @@ public class PatientKeywords {
 
     // Pathology Nominal Values
     public static final String PATHOLOGY_NONE = "NONE";
+    public static final String PATHOLOGY_CARDIAC_ARREST = "CARDIAC_ARREST";
+    public static final String PATHOLOGY_STEMI = "STEMI";
+    public static final String PATHOLOGY_STROKE = "STROKE";
+    public static final String PATHOLOGY_RESPIRATORY_FAILURE = "RESPIRATORY_FAILURE";
+    public static final String PATHOLOGY_SEVERE_TRAUMA = "SEVERE_TRAUMA";
 
     // Core Domain Events
     public static final String CLINICAL_ASSESSMENT_EVENT_KEY = "patient:event:clinical_assessment";

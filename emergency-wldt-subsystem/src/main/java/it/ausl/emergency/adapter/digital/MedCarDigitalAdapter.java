@@ -1,7 +1,6 @@
 package it.ausl.emergency.adapter.digital;
 
 import it.ausl.emergency.adapter.configuration.MedCarAdapterConfiguration;
-import it.ausl.emergency.payload.MedCarTelemetryPayload;
 import it.ausl.emergency.utils.MedCarKeywords;
 import it.wldt.adapter.digital.DigitalAdapter;
 import it.wldt.core.state.*;
@@ -27,10 +26,7 @@ import java.util.stream.Collectors;
  */
 public class MedCarDigitalAdapter extends DigitalAdapter<MedCarAdapterConfiguration> {
 
-    // Snapshot aggiornato ad ogni onStateUpdate() — leggibile dai test
     private final ConcurrentHashMap<String, Object> propertySnapshot = new ConcurrentHashMap<>();
-
-    // Si sblocca quando il DT raggiunge lo stato Shadowed
     private final CountDownLatch syncLatch = new CountDownLatch(1);
 
     // Contatori dei Domain Events — utili per le assert nei test
@@ -128,41 +124,13 @@ public class MedCarDigitalAdapter extends DigitalAdapter<MedCarAdapterConfigurat
             return;
 
         String eventKey = notification.getDigitalEventKey();
-        Object body = notification.getBody();
 
-        System.out.println("\n[MedCarDigitalAdapter] ══ DOMAIN EVENT ══════════════════════════");
-        System.out.println("  Event Key : " + eventKey);
-
-        if (MedCarKeywords.MISSION_ASSIGNED_EVENT_KEY.equals(eventKey)) {
-            missionAssignedCount++;
-            System.out.println("  ► MISSION ASSIGNED — MedCar dispatched to patient  (#" + missionAssignedCount + ")");
-            printPayloadSummary(body);
-
-        } else if (MedCarKeywords.ON_SCENE_TREATING_EVENT_KEY.equals(eventKey)) {
-            onSceneTreatingCount++;
-            System.out.println("  ► ON SCENE — Advanced treatment started  (#" + onSceneTreatingCount + ")");
-            printPayloadSummary(body);
-
-        } else if (MedCarKeywords.MISSION_COMPLETED_EVENT_KEY.equals(eventKey)) {
-            missionCompletedCount++;
-            System.out.println("  ► MISSION COMPLETED — MedCar returning to base  (#" + missionCompletedCount + ")");
-            printPayloadSummary(body);
-
-        } else if (MedCarKeywords.CRITICAL_FUEL_EVENT_KEY.equals(eventKey)) {
+        if (MedCarKeywords.CRITICAL_FUEL_EVENT_KEY.equals(eventKey)) {
             criticalFuelCount++;
-            System.out.println("  ► CRITICAL FUEL RESERVE ⚠  (#" + criticalFuelCount + ")");
-            printPayloadSummary(body);
 
         } else if (MedCarKeywords.MAINTENANCE_REQUIRED_EVENT_KEY.equals(eventKey)) {
             maintenanceRequiredCount++;
-            System.out.println("  ► MAINTENANCE REQUIRED ⚠  (#" + maintenanceRequiredCount + ")");
-            printPayloadSummary(body);
-
-        } else {
-            System.out.println("  (unhandled event: " + eventKey + ")");
         }
-
-        System.out.println("═════════════════════════════════════════════════════════════════\n");
     }
 
     // ── API ───────────────────────────────────────────────
@@ -208,52 +176,6 @@ public class MedCarDigitalAdapter extends DigitalAdapter<MedCarAdapterConfigurat
             }));
         } catch (Exception e) {
             System.err.println("[MedCarDigitalAdapter] Snapshot refresh error: " + e.getMessage());
-        }
-    }
-
-    private void printStateSnapshot(String title, DigitalTwinState state) {
-        System.out.println("\n[MedCarDigitalAdapter] ── " + title + " ──");
-        if (state == null)
-            return;
-        try {
-            state.getPropertyList().ifPresent(props -> props.forEach(p -> System.out.printf(
-                    "  [PROP] %-50s = %s%n", p.getKey(), p.getValue())));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println();
-    }
-
-    private void printOperationalSnapshot(DigitalTwinState state) {
-        if (state == null)
-            return;
-        String[] keys = {
-                MedCarKeywords.STATE_PROPERTY_KEY,
-                MedCarKeywords.PATIENT_ID_PROPERTY_KEY,
-                MedCarKeywords.HOME_BASE_ID_PROPERTY_KEY,
-                MedCarKeywords.FUEL_LEVEL_PROPERTY_KEY,
-                MedCarKeywords.MISSIONS_PROPERTY_KEY,
-                MedCarKeywords.NEEDS_REFUELING_PROPERTY_KEY,
-                MedCarKeywords.NEEDS_MAINTENANCE_PROPERTY_KEY,
-                MedCarKeywords.TRIP_DISTANCE_PROPERTY_KEY
-        };
-        System.out.println("  [Operational Snapshot]");
-        for (String key : keys) {
-            try {
-                state.getProperty(key).ifPresent(p -> System.out.printf("    %-52s = %s%n", p.getKey(), p.getValue()));
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    private void printPayloadSummary(Object body) {
-        if (body instanceof MedCarTelemetryPayload p) {
-            System.out.printf("    State: %-20s | Patient: %-15s | HomeBase: %s%n",
-                    p.state(), p.patientId(), p.homeBaseId());
-            System.out.printf("    Fuel: %.2f | Missions: %d | TripDist: %.1f m%n",
-                    p.fuelLevel(), p.missionsSinceMaintenance(), p.tripDistanceSinceEmergency());
-        } else {
-            System.out.println("    Body: " + body);
         }
     }
 }

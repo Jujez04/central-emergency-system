@@ -10,24 +10,13 @@ import it.wldt.adapter.physical.event.PhysicalAssetPropertyWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetRelationshipInstanceCreatedWldtEvent;
 import it.wldt.adapter.physical.event.PhysicalAssetRelationshipInstanceDeletedWldtEvent;
 import it.wldt.core.model.ShadowingFunction;
+import it.wldt.core.state.DigitalTwinStateAction;
 import it.wldt.core.state.DigitalTwinStateEvent;
 import it.wldt.core.state.DigitalTwinStateEventNotification;
 import it.wldt.core.state.DigitalTwinStateManager;
 import it.wldt.core.state.DigitalTwinStateProperty;
 
 /**
- * Shadowing Function del Paziente: è il componente che traduce lo stato
- * dell'agente Paziente della
- * simulazione (ricevuto tramite il
- * {@link it.ausl.emergency.adapter.physical.patient.PatientPhysicalAdapter})
- * nello stato del Digital Twin, esposto poi verso l'esterno tramite i Digital
- * Adapter.
- *
- * Le proprietà rispecchiano 1:1 i campi di PatientTelemetryPayload (vedi
- * PatientKeywords), gli eventi
- * rispecchiano i Domain Events individuati nell'analisi DDD della tesi
- * (Riscontro Clinico Eseguito,
- * Deterioramento Clinico Rilevato, Handover Completato).
  */
 public class PatientShadowingFunction extends ShadowingFunction {
 
@@ -77,7 +66,7 @@ public class PatientShadowingFunction extends ShadowingFunction {
                 pad.getActions().forEach(action -> {
                     try {
 
-                        it.wldt.core.state.DigitalTwinStateAction dtStateAction = new it.wldt.core.state.DigitalTwinStateAction(
+                        DigitalTwinStateAction dtStateAction = new DigitalTwinStateAction(
                                 action.getKey(), action.getType(), action.getContentType());
                         this.digitalTwinStateManager.enableAction(dtStateAction);
                     } catch (Exception e) {
@@ -156,10 +145,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     //// Helper Methods ////
 
     /**
-     * Crea la DigitalTwinStateProperty con il tipo corretto a partire dal valore
-     * iniziale dichiarato
-     * nella PhysicalAssetProperty, dato che i campi del Paziente non sono tutti
-     * dello stesso tipo.
      */
     private void createDigitalTwinStateProperty(PhysicalAssetProperty<?> property) throws Exception {
 
@@ -184,9 +169,6 @@ public class PatientShadowingFunction extends ShadowingFunction {
     }
 
     /**
-     * Aggiorna la DigitalTwinStateProperty con il tipo corretto a partire dal body
-     * dell'evento fisico
-     * di variazione, simmetrico a {@link #createDigitalTwinStateProperty}.
      */
     private void updateDigitalTwinStateProperty(String propertyKey, Object value) throws Exception {
 
@@ -199,8 +181,7 @@ public class PatientShadowingFunction extends ShadowingFunction {
         } else if (value instanceof String) {
             this.digitalTwinStateManager.updateProperty(new DigitalTwinStateProperty<>(propertyKey, (String) value));
         } else {
-            throw new IllegalArgumentException(
-                    "PatientShadowingFunction Unsupported value type for property key: " + propertyKey);
+            throw new IllegalArgumentException("PatientShadowingFunction unsupported value type for property key: " + propertyKey);
         }
     }
 

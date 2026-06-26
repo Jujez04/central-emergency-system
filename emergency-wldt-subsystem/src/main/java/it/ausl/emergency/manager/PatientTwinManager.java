@@ -11,14 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Factory e registry dei Digital Twin del Paziente.
- *
- * Responsabilità:
- *  - creare un nuovo PatientDigitalTwin al primo messaggio di un agentId sconosciuto
- *  - smistare la telemetria al Physical Adapter del twin corretto
- *  - rilevare lo stato "handover" e opzionalmente rimuovere il twin a missione conclusa
- *
- * Non sa nulla di MQTT: riceve dati già deserializzati da PatientMqttIngestionAdapter.
+ * Manager for handling payload received from PatientMqttIngestionAdapter
  */
 public class PatientTwinManager {
 
@@ -27,10 +20,7 @@ public class PatientTwinManager {
 
     private final DigitalTwinEngine engine;
     private final MissionTwinManager missionManager;
-
-    // Thread-safe: più messaggi MQTT possono arrivare in parallelo
-    private final ConcurrentHashMap<String, PatientDigitalTwin> registry =
-            new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, PatientDigitalTwin> registry = new ConcurrentHashMap<>();
 
     public PatientTwinManager(DigitalTwinEngine engine, MissionTwinManager manager) {
         this.engine = engine;
@@ -58,7 +48,7 @@ public class PatientTwinManager {
 
         twin.getPhysicalAdapter().onPatientTelemetryReceived(payload);
         missionManager.onPatientTelemetryUpdate(agentId, payload);
-        if (PatientKeywords.HANDOVER_STATE_VALUE.equalsIgnoreCase(payload.state())) {
+        if (PatientKeywords.STATE_AT_HOSPITAL.equalsIgnoreCase(payload.state())) {
             scheduleCleanup(agentId);
         }
     }
@@ -71,14 +61,10 @@ public class PatientTwinManager {
         return registry.get(agentId);
     }
 
-    // ── Private ───────────────────────────────────────────────────────────────
-
     private PatientDigitalTwin createAndStartTwin(String agentId) throws Exception {
 
-        PatientShadowingFunction sf =
-                new PatientShadowingFunction("patient-shadowing-" + agentId);
-        PatientDigitalTwin twin =
-                new PatientDigitalTwin("dt-" + agentId, sf);
+        PatientShadowingFunction sf = new PatientShadowingFunction("patient-shadowing-" + agentId);
+        PatientDigitalTwin twin = new PatientDigitalTwin("dt-" + agentId, sf);
 
         engine.addDigitalTwin(twin);
         engine.startDigitalTwin("dt-" + agentId);
@@ -86,10 +72,9 @@ public class PatientTwinManager {
     }
 
     /**
-     * Attende qualche secondo (per garantire la propagazione dell'ultimo stato)
-     * poi rimuove il twin dal registry. Il twin rimane attivo nel motore WLDT
-     * per eventuali query storiche; si può chiamare engine.stopDigitalTwin() se
-     * si vuole rilasciare anche le risorse WLDT.
+     * This method is used handling registry memory overload
+     * in case there are too many patient to be handled.
+     * @param agentId
      */
     private void scheduleCleanup(String agentId) {
         Thread cleanupThread = new Thread(() -> {

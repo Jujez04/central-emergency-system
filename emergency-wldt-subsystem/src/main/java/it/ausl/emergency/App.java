@@ -1,8 +1,8 @@
 package it.ausl.emergency;
 
-import it.ausl.emergency.adapter.physical.patient.PatientMqttIngestionAdapter;
 import it.ausl.emergency.adapter.physical.VehicleMqttIngestionAdapter;
 import it.ausl.emergency.adapter.physical.HospitalMqttIngestionAdapter;
+import it.ausl.emergency.adapter.physical.PatientMqttIngestionAdapter;
 import it.ausl.emergency.manager.PatientTwinManager;
 import it.ausl.emergency.manager.VehicleTwinManager;
 import it.ausl.emergency.manager.HospitalTwinManager;

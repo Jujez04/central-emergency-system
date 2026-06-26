@@ -73,8 +73,6 @@ public class PatientDigitalAdapter extends DigitalAdapter<PatientAdapterConfigur
     public void onDigitalTwinDestroy() {
     }
 
-    // ── Transactional State Monitoring Update Callbacks ──────────────────────
-
     @Override
     protected void onStateUpdate(DigitalTwinState newState,
                                  DigitalTwinState previousState,

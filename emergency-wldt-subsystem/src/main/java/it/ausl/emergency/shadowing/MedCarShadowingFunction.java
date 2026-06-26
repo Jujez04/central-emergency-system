@@ -1,6 +1,5 @@
 package it.ausl.emergency.shadowing;
 
-import it.ausl.emergency.utils.MedCarKeywords;
 import it.wldt.adapter.digital.event.DigitalActionWldtEvent;
 import it.wldt.adapter.physical.PhysicalAssetDescription;
 import it.wldt.adapter.physical.PhysicalAssetProperty;
@@ -201,25 +200,6 @@ public class MedCarShadowingFunction extends ShadowingFunction {
         } else {
             throw new IllegalArgumentException(
                     "[MedCarShadowingFunction] Unsupported property type for key: " + property.getKey());
-        }
-    }
-
-    private void updateDigitalTwinStateProperty(String key, Object val) throws Exception {
-        if (val instanceof Double) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (Double) val));
-        } else if (val instanceof Integer) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (Integer) val));
-        } else if (val instanceof Boolean) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (Boolean) val));
-        } else if (val instanceof String) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (String) val));
-        } else {
-            throw new IllegalArgumentException(
-                    "MedCarShadowingFunction Unsupported value type for key: " + key);
         }
     }
 

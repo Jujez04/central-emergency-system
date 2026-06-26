@@ -204,25 +204,6 @@ public class MedHelicopterShadowingFunction extends ShadowingFunction {
         }
     }
 
-    private void updateDigitalTwinStateProperty(String key, Object val) throws Exception {
-        if (val instanceof Double) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (Double) val));
-        } else if (val instanceof Integer) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (Integer) val));
-        } else if (val instanceof Boolean) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (Boolean) val));
-        } else if (val instanceof String) {
-            this.digitalTwinStateManager.updateProperty(
-                    new DigitalTwinStateProperty<>(key, (String) val));
-        } else {
-            throw new IllegalArgumentException(
-                    "MedHelicopterShadowingFunction Unsupported value type for key: " + key);
-        }
-    }
-
     public DigitalTwinStateManager getDigitalTwinStateManager() {
         return this.digitalTwinStateManager;
     }

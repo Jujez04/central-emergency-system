@@ -67,12 +67,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
         pad.getProperties().add(new PhysicalAssetProperty<>(
                 MedCarKeywords.TRIP_DISTANCE_PROPERTY_KEY,    getConfiguration().getDefaultTripDistanceSinceEmergency()));
         pad.getEvents().add(new PhysicalAssetEvent(
-                MedCarKeywords.MISSION_ASSIGNED_EVENT_KEY,     "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(
-                MedCarKeywords.ON_SCENE_TREATING_EVENT_KEY,    "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(
-                MedCarKeywords.MISSION_COMPLETED_EVENT_KEY,    "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(
                 MedCarKeywords.CRITICAL_FUEL_EVENT_KEY,        "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(
                 MedCarKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, "application/json"));
@@ -118,27 +112,6 @@ public class MedCarPhysicalAdapter extends ConfigurablePhysicalAdapter<MedCarAda
                     MedCarKeywords.TIMESTAMP_PROPERTY_KEY,        payload.timestamp()));
             publishPhysicalAssetPropertyWldtEvent(new PhysicalAssetPropertyWldtEvent<>(
                     MedCarKeywords.TRIP_DISTANCE_PROPERTY_KEY,    payload.tripDistanceSinceEmergency()));
-
-            String prevState = lastTelemetry != null ? lastTelemetry.state() : null;
-            String currState = payload.state();
-
-            if (MedCarKeywords.STATE_MOVING_TO_PATIENT.equals(currState)
-                    && !MedCarKeywords.STATE_MOVING_TO_PATIENT.equals(prevState)) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MedCarKeywords.MISSION_ASSIGNED_EVENT_KEY, payload));
-            }
-
-            if (MedCarKeywords.STATE_TREATING_PATIENT.equals(currState)
-                    && !MedCarKeywords.STATE_TREATING_PATIENT.equals(prevState)) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MedCarKeywords.ON_SCENE_TREATING_EVENT_KEY, payload));
-            }
-
-            if (MedCarKeywords.STATE_RETURNING.equals(currState)
-                    && MedCarKeywords.STATE_TREATING_PATIENT.equals(prevState)) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MedCarKeywords.MISSION_COMPLETED_EVENT_KEY, payload));
-            }
 
             if (payload.fuelLevel() < MedCarKeywords.CRITICAL_FUEL_THRESHOLD
                     && (lastTelemetry == null

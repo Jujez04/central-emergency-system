@@ -1,4 +1,4 @@
-package it.ausl.emergency.adapter.physical.patient;
+package it.ausl.emergency.adapter.physical;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.ausl.emergency.manager.PatientTwinManager;
@@ -29,8 +29,7 @@ public class PatientMqttIngestionAdapter implements MqttCallback {
     }
 
     public void start() throws MqttException {
-        client = new MqttClient(brokerUrl, "ces-dt-ingestion-" + System.currentTimeMillis(),
-                new MemoryPersistence());
+        client = new MqttClient(brokerUrl, "ces-dt-ingestion-" + System.currentTimeMillis(), new MemoryPersistence());
         client.setCallback(this);
 
         MqttConnectOptions opts = new MqttConnectOptions();

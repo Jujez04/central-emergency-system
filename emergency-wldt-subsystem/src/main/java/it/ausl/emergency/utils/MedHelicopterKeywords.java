@@ -23,9 +23,6 @@ public class MedHelicopterKeywords {
     public static final String TRIP_DISTANCE_PROPERTY_KEY = "medhelicopter-trip-distance-property-key";
 
     // Domain Event Keys
-    public static final String MISSION_ASSIGNED_EVENT_KEY = "medhelicopter-mission-assigned-event-key";
-    public static final String PATIENT_ONBOARD_EVENT_KEY = "medhelicopter-patient-onboard-event-key";
-    public static final String HOSPITAL_HANDOVER_EVENT_KEY = "medhelicopter-hospital-handover-event-key";
     public static final String CRITICAL_FUEL_EVENT_KEY = "medhelicopter-critical-fuel-alert-event-key";
     public static final String MAINTENANCE_REQUIRED_EVENT_KEY = "medhelicopter-maintenance-required-event-key";
 

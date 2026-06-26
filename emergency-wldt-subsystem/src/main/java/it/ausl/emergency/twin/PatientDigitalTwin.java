@@ -2,7 +2,7 @@ package it.ausl.emergency.twin;
 
 import it.ausl.emergency.adapter.configuration.PatientAdapterConfiguration;
 import it.ausl.emergency.adapter.digital.PatientDigitalAdapter;
-import it.ausl.emergency.adapter.physical.patient.PatientPhysicalAdapter;
+import it.ausl.emergency.adapter.physical.PatientPhysicalAdapter;
 import it.ausl.emergency.shadowing.PatientShadowingFunction;
 import it.wldt.core.engine.DigitalTwin;
 import it.wldt.exception.EventBusException;

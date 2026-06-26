@@ -82,14 +82,6 @@ public class MedHelicopterPhysicalAdapter
         pad.getProperties().add(new PhysicalAssetProperty<>(
                 MedHelicopterKeywords.TRIP_DISTANCE_PROPERTY_KEY,
                 getConfiguration().getDefaultTripDistanceSinceEmergency()));
-
-        // Domain Events
-        pad.getEvents().add(new PhysicalAssetEvent(
-                MedHelicopterKeywords.MISSION_ASSIGNED_EVENT_KEY,     "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(
-                MedHelicopterKeywords.PATIENT_ONBOARD_EVENT_KEY,      "application/json"));
-        pad.getEvents().add(new PhysicalAssetEvent(
-                MedHelicopterKeywords.HOSPITAL_HANDOVER_EVENT_KEY,    "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(
                 MedHelicopterKeywords.CRITICAL_FUEL_EVENT_KEY,        "application/json"));
         pad.getEvents().add(new PhysicalAssetEvent(
@@ -159,31 +151,6 @@ public class MedHelicopterPhysicalAdapter
 
             // Domain Events
 
-            String prevState = lastTelemetry != null ? lastTelemetry.state() : null;
-            String currState = payload.state();
-
-            // Event 1 — Mission Assigned: atRest → MovingToPatient
-            if (MedHelicopterKeywords.STATE_MOVING_TO_PATIENT.equals(currState)
-                    && !MedHelicopterKeywords.STATE_MOVING_TO_PATIENT.equals(prevState)) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MedHelicopterKeywords.MISSION_ASSIGNED_EVENT_KEY, payload));
-            }
-
-            // Event 2 — Patient Onboard: TakingPatient → MovingToHospital
-            if (MedHelicopterKeywords.STATE_MOVING_TO_HOSPITAL.equals(currState)
-                    && MedHelicopterKeywords.STATE_TAKING_PATIENT.equals(prevState)) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MedHelicopterKeywords.PATIENT_ONBOARD_EVENT_KEY, payload));
-            }
-
-            // Event 3 — Hospital Handover: * → Handover (fronte di ingresso)
-            if (MedHelicopterKeywords.STATE_HANDOVER.equals(currState)
-                    && !MedHelicopterKeywords.STATE_HANDOVER.equals(prevState)) {
-                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                        MedHelicopterKeywords.HOSPITAL_HANDOVER_EVENT_KEY, payload));
-            }
-
-            // Event 4 — Critical Fuel: fronte di discesa sotto soglia 0.20
             if (payload.fuelLevel() < MedHelicopterKeywords.CRITICAL_FUEL_THRESHOLD
                     && (lastTelemetry == null
                         || lastTelemetry.fuelLevel() >= MedHelicopterKeywords.CRITICAL_FUEL_THRESHOLD)) {
@@ -191,7 +158,6 @@ public class MedHelicopterPhysicalAdapter
                         MedHelicopterKeywords.CRITICAL_FUEL_EVENT_KEY, payload));
             }
 
-            // Event 5 — Maintenance Required: fronte di salita su needsMaintenance
             if (payload.needsMaintenance()
                     && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
                 publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(

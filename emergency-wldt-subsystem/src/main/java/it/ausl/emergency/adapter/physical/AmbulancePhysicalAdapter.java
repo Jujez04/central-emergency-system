@@ -83,11 +83,6 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
                 return pad;
         }
 
-        /**
-         * Actuation Command Center Endpoint.
-         * Triggered by the Operational Core to override the vehicle destination
-         * hospital.
-         */
         @Override
         public void onIncomingPhysicalAction(PhysicalAssetActionWldtEvent<?> physicalActionEvent) {
                 if (physicalActionEvent == null)
@@ -107,8 +102,7 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
                                         AmbulanceTelemetryPayload.class);
                         this.onAmbulanceTelemetryReceived(payload);
                 } catch (Exception e) {
-                        System.err.println("[AmbulancePhysicalAdapter] JSON contract matching structure error: "
-                                        + e.getMessage());
+                        System.err.println("AmbulancePhysicalAdapter JSON contract matching structure error: " + e.getMessage());
                 }
         }
 
@@ -145,18 +139,15 @@ public class AmbulancePhysicalAdapter extends ConfigurablePhysicalAdapter<Ambula
                                         payload.tripDistanceSinceEmergency()));
 
                         // Domain Event 1: Critical Fuel Level Notification Edge
-                        if (payload.fuelLevel() < 0.20
-                                        && (lastTelemetry == null || lastTelemetry.fuelLevel() >= 0.20)) {
-                                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                                                AmbulanceKeywords.CRITICAL_FUEL_EVENT_KEY, payload));
+                        if (payload.fuelLevel() < 0.20 && (lastTelemetry == null || lastTelemetry.fuelLevel() >= 0.20)) {
+                                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(AmbulanceKeywords.CRITICAL_FUEL_EVENT_KEY, payload));
                         }
 
                         // Domain Event 2: Maintenance Requested Flag Edge
-                        if (payload.needsMaintenance()
-                                        && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
-                                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(
-                                                AmbulanceKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, payload));
+                        if (payload.needsMaintenance() && (lastTelemetry == null || !lastTelemetry.needsMaintenance())) {
+                                publishPhysicalAssetEventWldtEvent(new PhysicalAssetEventWldtEvent<>(AmbulanceKeywords.MAINTENANCE_REQUIRED_EVENT_KEY, payload));
                         }
+
 
                         lastTelemetry = payload;
 

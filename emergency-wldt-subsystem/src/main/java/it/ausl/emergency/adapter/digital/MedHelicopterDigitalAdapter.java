@@ -118,15 +118,8 @@ public class MedHelicopterDigitalAdapter extends DigitalAdapter<MedHelicopterAda
             return;
 
         String eventKey = notification.getDigitalEventKey();
-        Object body = notification.getBody();
 
-        if (MedHelicopterKeywords.MISSION_ASSIGNED_EVENT_KEY.equals(eventKey)) {
-            missionAssignedCount++;
-        } else if (MedHelicopterKeywords.PATIENT_ONBOARD_EVENT_KEY.equals(eventKey)) {
-            patientOnboardCount++;
-        } else if (MedHelicopterKeywords.HOSPITAL_HANDOVER_EVENT_KEY.equals(eventKey)) {
-            hospitalHandoverCount++;
-        } else if (MedHelicopterKeywords.CRITICAL_FUEL_EVENT_KEY.equals(eventKey)) {
+        if (MedHelicopterKeywords.CRITICAL_FUEL_EVENT_KEY.equals(eventKey)) {
             criticalFuelCount++;
         } else if (MedHelicopterKeywords.MAINTENANCE_REQUIRED_EVENT_KEY.equals(eventKey)) {
             maintenanceRequiredCount++;

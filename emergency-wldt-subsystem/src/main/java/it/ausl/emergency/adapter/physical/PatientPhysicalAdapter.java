@@ -1,4 +1,4 @@
-package it.ausl.emergency.adapter.physical.patient;
+package it.ausl.emergency.adapter.physical;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
